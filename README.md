@@ -1,6 +1,6 @@
 Project Page
 =============
-http://amfitool.readthedocs.io
+http://mftool.readthedocs.io
 
 mftracker
 ========
