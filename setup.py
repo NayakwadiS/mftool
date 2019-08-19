@@ -13,7 +13,7 @@ setup(
     description="Python library for extracting realtime Mutual funds data from AMFI (India)",
     license="MIT",
     keywords="amfi, quote, mutual-funds",
-    install_requires=['requests','jsonlib'],
+    install_requires=['requests','json'],
     url="http://mftool.readthedocs.io",
     packages=find_packages(),
 	long_description = long_description,
