@@ -190,13 +190,14 @@ Unlike in previous section, the return type is list.
 		  {'date': '02-01-2013', 'nav': '103.00590'}
 		 ]
 }
+
 .. note:: 
 
     Output has been truncated for better legibility. This is a json with more that thousand 
     entries.
 
 Calculate Market value of Units
------------------
+-------------------------------
 
 This calculates the Today's Market value of units you are having.
 provide with scheme code and units balance you are having
