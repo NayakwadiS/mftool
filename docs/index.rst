@@ -163,7 +163,7 @@ programatically as well.
     entries.
 
 
-get Scheme Historical NAV's data
+Get Scheme Historical NAV's data
 --------------------------------
 
 Similar to above, there is a way to get the list of *codes* of all the Mutual Funds Schemes.
