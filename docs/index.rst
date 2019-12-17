@@ -115,7 +115,7 @@ we need is AMFI Code for this company.
 
     Always use AMFI codes of schemes.
 	All scheme codes are presented here -
-	https://github.com/NayakwadiS/mftool/master/Scheme_codes.txt
+	https://github.com/NayakwadiS/mftool/blob/master/Scheme_codes.txt
 	
 
 Get Scheme Details
