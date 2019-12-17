@@ -224,10 +224,7 @@ Methode gives us Historical Data of scheme for perticular year.
 	'scheme_category': 'Equity Scheme - Sectoral/ Thematic',
 	'scheme_code': 119596,
 	'scheme_name': 'Sundaram Financial Services Opportunities Fund - Direct Plan - Dividend Option',
-	'scheme_start_date': {
-		'date': '02-01-2013',
-		'nav': '13.79920'
-	},
+	'scheme_start_date': {'date': '02-01-2013','nav': '13.79920'},
 	'data': [{'date': '31-12-2014','nav': '16.70060'},
 		 {'date': '30-12-2014','nav': '16.62180'},
 		  .
