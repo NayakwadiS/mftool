@@ -24,6 +24,7 @@
 """
 import requests
 import json
+import datetime
 
 class Mftool():
     """
@@ -156,3 +157,32 @@ class Mftool():
                 return json.dumps(data)
             else:
                 return data
+
+    def get_scheme_historical_nav_year(self, code, year, as_json=False):
+        """
+        gets the scheme historical data of given year for a given scheme code
+        :param code: scheme code
+        :param code: year
+        :return: dict or None
+        :raises: HTTPError, URLError
+        """
+        code = str(code)
+        if self.is_valid_code(code):
+            scheme_info = {}
+            data = []
+            url = self._get_scheme_url + code
+            response = self._session.get(url).json()
+            nav = self.get_scheme_historical_nav(code)
+            scheme_info = self.get_scheme_details(code)
+            for dat in nav['data']:
+                navDate = dat['date']
+                d = datetime.datetime.strptime(navDate, '%d-%m-%Y')
+                if d.year == int(year):
+                    data.append(dat)
+            if len(data) == 0:
+                data.append({'Error': 'For Year '+str(year)+' Data is NOT available'})
+
+            scheme_info.update(data=data)
+            return self.render_response(scheme_info, as_json)
+        else:
+            return None
