@@ -166,8 +166,7 @@ programatically as well.
 Get Scheme Historical NAV's data
 --------------------------------
 
-Similar to above, there is a way to get the list of *codes* of all the Mutual Funds Schemes.
-Unlike in previous section, the return type is list.
+Methode gives us All Historical Data of scheme.
 
 >>> data = mf.get_scheme_historical_nav("119598",as_json=True)
 >>> print(data)
@@ -209,5 +208,34 @@ provide with scheme code and units balance you are having
  'last_updated': '14-Aug-2019',
  'nav': '40.0138',
  'balance_units_value': '17838.31'}
+ 
+ Get Scheme Historical NAV's data for perticular Year
+-----------------------------------------------------
+
+Methode gives us Historical Data of scheme for perticular year.
+
+>>> value = m.get_scheme_historical_nav_year(119596,2014)
+>>> print(value)
+{
+	'fund_house': 'Sundaram Mutual Fund',
+	'scheme_type': 'Open Ended Schemes',
+	'scheme_category': 'Equity Scheme - Sectoral/ Thematic',
+	'scheme_code': 119596,
+	'scheme_name': 'Sundaram Financial Services Opportunities Fund - Direct Plan - Dividend Option',
+	'scheme_start_date': {
+		'date': '02-01-2013',
+		'nav': '13.79920'
+	},
+	'data': [{'date': '31-12-2014','nav': '16.70060'},
+		 {'date': '30-12-2014','nav': '16.62180'},
+		  .
+		  .
+		  .
+		  .
+		  .
+		  .
+	 	 {'date': '01-01-2014', 'nav': '11.87130'}
+	 	]
+}	  
  
  .. disqus::
