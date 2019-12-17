@@ -211,8 +211,8 @@ provide with scheme code and units balance you are having
  }
  
  
-Get Scheme Historical NAV's data for perticular Year
------------------------------------------------------
+Get Scheme Historical NAV data of perticular Year
+-------------------------------------------------
 
 Methode gives us Historical Data of scheme for perticular year.
 
