@@ -207,10 +207,11 @@ provide with scheme code and units balance you are having
  'scheme_name': 'SBI BLUE CHIP FUND-DIRECT PLAN -GROWTH',
  'last_updated': '14-Aug-2019',
  'nav': '40.0138',
- 'balance_units_value': '17838.31'}
+ 'balance_units_value': '17838.31'
+ }
  
  
- Get Scheme Historical NAV's data for perticular Year
+Get Scheme Historical NAV's data for perticular Year
 -----------------------------------------------------
 
 Methode gives us Historical Data of scheme for perticular year.
