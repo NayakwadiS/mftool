@@ -101,7 +101,7 @@ we need is AMFI Code for this company.
 >>> q = mf.get_scheme_quote('117865') # it's ok to use both string or integer as codes.
 >>> print(q)
 {"scheme_code": "119598",
- "scheme_name": "SBI BLUE CHIP FUND-DIRECT PLAN -GROWTH",
+ "scheme_name": "SBI xxxxxxxxxxxxx",
  "last_updated": "16-Aug-2019",
  "nav": "40.0138"
 }
@@ -124,11 +124,11 @@ Get Scheme Details
 gets the scheme info for a given scheme code 
 
 >>> mf.get_scheme_details("117865")
-{'fund_house': 'UTI Mutual Fund',
+{'fund_house': 'UTI xxxxxxxxxxxxx',
  'scheme_type': 'IL&FS Mutual Fund',
  'scheme_category': 'IDF',
  'scheme_code': 117865,
- 'scheme_name': 'UTI-FTIF Series-XII Plan VIII (1098 Days) - Growth Option',
+ 'scheme_name': 'UTI-xxxxxxxxxxxxx - Growth Option',
  'scheme_start_date': {'date': '10-09-2012', 'nav': '10.01030'}
 }
 
@@ -170,10 +170,10 @@ Methode gives us All Historical Data of scheme.
 
 >>> data = mf.get_scheme_historical_nav("119598",as_json=True)
 >>> print(data)
-{'fund_house': 'Aditya Birla Sun Life Mutual Fund',
+{'fund_house': 'Aditya xxxxxxxxxxxxx',
  'scheme_type': 'Open Ended Schemes',
  'scheme_category': 'Debt Scheme - Banking and PSU Fund',
- 'scheme_code': 119551, 'scheme_name': 'Aditya Birla Sun Life Banking & PSU Debt Fund  - Direct Plan-Dividend',
+ 'scheme_code': 119551, 'scheme_name': 'Aditya xxxxxxxxxxxxx  - Direct Plan-Dividend',
  'scheme_start_date': {'date': '02-01-2013', 'nav': '103.00590'},
  'data': [{'date': '16-08-2019', 'nav': '149.33110'}, 
 		  {'date': '14-08-2019', 'nav': '149.08090'}, 
@@ -204,7 +204,7 @@ provide with scheme code and units balance you are having
 >>> value = mf.calculate_balance_units_value(119598, 445.804)
 >>> print(value)
 {'scheme_code': '119598',
- 'scheme_name': 'SBI BLUE CHIP FUND-DIRECT PLAN -GROWTH',
+ 'scheme_name': 'SBI xxxxxxxxxxxxx',
  'last_updated': '14-Aug-2019',
  'nav': '40.0138',
  'balance_units_value': '17838.31'
@@ -219,11 +219,11 @@ Methode gives us Historical Data of scheme for perticular year.
 >>> value = m.get_scheme_historical_nav_year(119596,2014)
 >>> print(value)
 {
-	'fund_house': 'Sundaram Mutual Fund',
+	'fund_house': 'Sundaram xxxxxxxxxxxxx',
 	'scheme_type': 'Open Ended Schemes',
 	'scheme_category': 'Equity Scheme - Sectoral/ Thematic',
 	'scheme_code': 119596,
-	'scheme_name': 'Sundaram Financial Services Opportunities Fund - Direct Plan - Dividend Option',
+	'scheme_name': 'Sundaram xxxxxxxxxxxxx - Dividend Option',
 	'scheme_start_date': {'date': '02-01-2013','nav': '13.79920'},
 	'data': [{'date': '31-12-2014','nav': '16.70060'},
 		 {'date': '30-12-2014','nav': '16.62180'},
