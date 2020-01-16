@@ -7,13 +7,13 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 	
 setup(
     name="mftool",
-    version="1.0.3",
+    version="1.1",
     author="Sujit Nayakwadi",
     author_email="nayakwadi.sujit@gmail.com",
     description="Python library for extracting realtime Mutual funds data from AMFI (India)",
     license="MIT",
-    keywords="amfi, quote, mutual-funds",
-    install_requires=['requests'],
+    keywords="amfi, quote, mutual-funds, funds, mutual, nse",
+    install_requires=['requests','bs4'],
     url="http://mftool.readthedocs.io",
     packages=find_packages(),
 	long_description = long_description,
