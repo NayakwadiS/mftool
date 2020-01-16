@@ -1,7 +1,7 @@
 """
     The MIT License (MIT)
 
-    Copyright (c) 2019 Sujit Nayakwadi
+    Copyright (c) 2020 Sujit Nayakwadi
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,9 @@
 """
 import requests
 import json
+from bs4 import BeautifulSoup
 import datetime
+from datetime import date,timedelta
 
 class Mftool():
     """
@@ -37,6 +39,18 @@ class Mftool():
         # URL list
         self._get_quote_url = 'https://www.amfiindia.com/spages/NAVAll.txt'
         self._get_scheme_url = 'https://api.mfapi.in/mf/'
+        self._get_open_ended_equity_scheme_url = 'http://www.valueresearchonline.com/amfi/fund-performance-data/?' \
+                                                 'end-type=1&primary-category=SEQ&category=CAT&amc=ALL'
+        self._open_ended_equity_category = {'Large Cap': 'SEQ_LC',
+                                            'Large & Mid Cap': 'SEQ_LMC',
+                                            'Multi Cap': 'SEQ_MLC',
+                                            'Mid Cap': 'SEQ_MC',
+                                            'Small Cap': 'SEQ_SC',
+                                            'Value': 'SEQ_VAL',
+                                            'ELSS': 'SEQ_ELSS',
+                                            'Contra': 'SEQ_CONT',
+                                            'Dividend Yield': 'SEQ_DIVY',
+                                            'Focused': 'SEQ_FOC'}
 
     def get_scheme_codes(self, as_json=False):
         """
@@ -186,3 +200,65 @@ class Mftool():
             return self.render_response(scheme_info, as_json)
         else:
             return None
+
+    def is_holiday(self):
+        if date.today().strftime("%a") in ['Sat', 'Sun', 'Mon']:
+            return True
+        else:
+            return False
+
+    def get_friday(self):
+        days = {'Sat': 1, 'Sun': 2, 'Mon': 3}
+        diff = int(days[date.today().strftime("%a")]) - 1
+        return (date.today() - timedelta(days=diff)).strftime("%d-%b-%Y")
+
+    def get_open_ended_equity_scheme_performance(self, as_json=False):
+        """
+        gets the daily performance of open ended equity schemes for all AMCs
+        :return: json format
+        :raises: HTTPError, URLError
+        """
+        scheme_performance = {}
+        for key in self._open_ended_equity_category.keys():
+            scheme_performance_url = self._get_open_ended_equity_scheme_url.replace('CAT',self._open_ended_equity_category[key])
+            scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url, False)
+        return self.render_response(scheme_performance,as_json)
+
+    def get_daily_scheme_performance(self, performance_url,as_json):
+        fund_performance = []
+        if self.is_holiday():
+            url = performance_url + '&nav-date=' + self.get_friday()
+        else:
+            url = performance_url + '&nav-date=' + date.today().strftime("%d-%b-%Y")
+        html = requests.get(url)
+        soup = BeautifulSoup(html.text, 'html.parser')
+        rows = soup.select("table tbody tr")
+        try:
+            for tr in rows:
+                scheme_details = {}
+                cols = tr.select("td.nav.text-right")
+                scheme_details['scheme_name'] = tr.select("td")[0].get_text()
+                scheme_details['benchmark'] = tr.select("td")[1].get_text()
+
+                scheme_details['latest NAV- Regular'] = cols[0].contents[0]
+                scheme_details['latest NAV- Direct'] = cols[1].contents[0]
+
+                oneYr = tr.find_all("td", recursive=False, class_="1Y text-right", limit=2)
+                scheme_details['1-Year Return(%)- Regular'] = oneYr[0].contents[0]
+                scheme_details['1-Year Return(%)- Direct'] = oneYr[1].contents[0]
+
+                threeYr = tr.find_all("td", recursive=False, class_="3Y text-right hidden", limit=2)
+                scheme_details['3-Year Return(%)- Regular'] = threeYr[0].contents[0]
+                scheme_details['3-Year Return(%)- Direct'] = threeYr[1].contents[0]
+
+                fiveYr = tr.find_all("td", recursive=False, class_="5Y text-right hidden", limit=2)
+                scheme_details['5-Year Return(%)- Regular'] = fiveYr[0].contents[0]
+                scheme_details['5-Year Return(%)- Direct'] = fiveYr[1].contents[0]
+
+                fund_performance.append(scheme_details)
+
+        except Exception:
+            return self.render_response(['The underlying data is unavailable for Today'], as_json)
+
+        return self.render_response(fund_performance, as_json)
+
