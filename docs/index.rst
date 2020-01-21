@@ -82,7 +82,7 @@ As mentioned earlier, mftool comes pre-built with all the right url mappings and
 instantiating it requires no contructor arguments.
 
 >>> from mftool import Mftool
->>> mf = Mftools()
+>>> mf = Mftool()
 >>> print mf
 Driver Class for The Association of Mutual Funds in India (AMFI)
 
@@ -215,7 +215,7 @@ Get daily performance of equity schemes
 -------------------------------------------------
 To get daily Performance of open ended equity schemes for all AMCs
 
->>> value = m.get_open_ended_equity_scheme_performance(True)
+>>> value = mf.get_open_ended_equity_scheme_performance(True)
 >>> print(value)
 {
 	"Large Cap": [{
