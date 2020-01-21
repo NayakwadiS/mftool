@@ -21,6 +21,7 @@ Main Features:
 * Helper APIs to check whether a given Scheme code is correct.
 * Getting all Historical nav's for a scheme using scheme code.
 * Getting list of all Schemes with there Scheme codes.
+* Get daily Scheme performance.
 * Cent percent unittest coverage.
 
 Dependencies
