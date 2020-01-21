@@ -14,7 +14,7 @@ setup(
     license="MIT",
     keywords="amfi, quote, mutual-funds, funds, mutual, nse",
     install_requires=['requests','bs4'],
-    url="http://mftool.readthedocs.io",
+    url="https://github.com/NayakwadiS/mftool",
     packages=find_packages(),
 	long_description = long_description,
 	long_description_content_type='text/markdown'
