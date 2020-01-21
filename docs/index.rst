@@ -258,7 +258,7 @@ Get Scheme Historical NAV data of perticular Year
 
 Methode gives us Historical Data of scheme for perticular year.
 
->>> value = m.get_scheme_historical_nav_year(119596,2014)
+>>> value = mf.get_scheme_historical_nav_year(119596,2014)
 >>> print(value)
 {
 	'fund_house': 'Sundaram xxxxxxxxxxxxx',
