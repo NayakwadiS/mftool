@@ -153,8 +153,7 @@ programatically as well.
 .
 .
 .
- '117864': 'UTI-FTIF Series-XII Plan VIII (1098 Days) - Maturity Dividend Option',
- '117863': 'UTI-FTIF Series-XII Plan VIII (1098 Days) - Quarterly Dividend Option'
+ '117864': 'UTI-FTIF Series-XII Plan VIII (1098 Days) - Maturity Dividend Option'
 }
 
 .. note:: 
@@ -210,7 +209,50 @@ provide with scheme code and units balance you are having
  'balance_units_value': '17838.31'
  }
  
+
  
+Get daily performance of equity schemes
+-------------------------------------------------
+To get daily Performance of open ended equity schemes for all AMCs
+
+>>> value = m.get_open_ended_equity_scheme_performance(True)
+>>> print(value)
+{
+	"Large Cap": [{
+		"scheme_name": "xxxxxxxxxxxxxxxx",
+		"benchmark": "NIFTY 50 Total Return",
+		"latest NAV- Regular": "xxxxx",
+		"latest NAV- Direct": "xxxxx",
+		"1-Year Return(%)- Regular": "8.72",
+		"1-Year Return(%)- Direct": "9.48",
+		"3-Year Return(%)- Regular": "10.22",
+		"3-Year Return(%)- Direct": "11.22",
+		"5-Year Return(%)- Regular": "7.33",
+		"5-Year Return(%)- Direct": "8.33"
+	},
+	.
+	.
+	.
+	.
+	],
+	"Large & Mid Cap": [
+	{
+		"scheme_name": "xxxxxxxxxxxxxxxxxx",
+		"benchmark": "NIFTY Large Midcap 250 Total Return Index",
+		"latest NAV- Regular": "xxxxx",
+		"latest NAV- Direct": "xxxxx",
+		"1-Year Return(%)- Regular": "13.45",
+		"1-Year Return(%)- Direct": "14.45",
+		"3-Year Return(%)- Regular": "9.15",
+		"3-Year Return(%)- Direct": "10.35",
+		"5-Year Return(%)- Regular": "8.32",
+		"5-Year Return(%)- Direct": "9.41"
+	},
+	.
+	.
+]}
+
+
 Get Scheme Historical NAV data of perticular Year
 -------------------------------------------------
 
