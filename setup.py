@@ -12,7 +12,7 @@ setup(
     author_email="nayakwadi.sujit@gmail.com",
     description="Python library for extracting realtime Mutual funds data from AMFI (India)",
     license="MIT",
-    keywords="amfi, quote, mutual-funds, funds, mutual, nse",
+    keywords="amfi, quote, mutual-funds, funds, bse, nse, market, stock, stocks",
     install_requires=['requests','bs4'],
     url="https://github.com/NayakwadiS/mftool",
     packages=find_packages(),
