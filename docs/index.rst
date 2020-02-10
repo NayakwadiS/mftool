@@ -253,7 +253,7 @@ To get daily Performance of open ended equity schemes for all AMCs
 ]}
 
 
-Get Scheme Historical NAV data of perticular Year
+Get Scheme Historical NAV data of particular Year
 -------------------------------------------------
 
 Methode gives us Historical Data of scheme for perticular year.
