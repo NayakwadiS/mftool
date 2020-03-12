@@ -1,6 +1,6 @@
 mftool
 ========
-<img src="./mftool.png"  height="150">
+<img src="./mftool.PNG"  height="150">
 
 Python library for extracting realtime Mutual Funds data from AMFI (India)
 
