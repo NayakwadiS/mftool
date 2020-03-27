@@ -1,18 +1,14 @@
 """
     The MIT License (MIT)
-
     Copyright (c) 2020 Sujit Nayakwadi
-
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
     in the Software without restriction, including without limitation the rights
     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
     copies of the Software, and to permit persons to whom the Software is
     furnished to do so, subject to the following conditions:
-
     The above copyright notice and this permission notice shall be included in all
     copies or substantial portions of the Software.
-
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -20,7 +16,6 @@
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
-
 """
 import requests
 import json
@@ -41,16 +36,20 @@ class Mftool():
         self._get_scheme_url = 'https://api.mfapi.in/mf/'
         self._get_open_ended_equity_scheme_url = 'http://www.valueresearchonline.com/amfi/fund-performance-data/?' \
                                                  'end-type=1&primary-category=SEQ&category=CAT&amc=ALL'
-        self._open_ended_equity_category = {'Large Cap': 'SEQ_LC',
-                                            'Large & Mid Cap': 'SEQ_LMC',
-                                            'Multi Cap': 'SEQ_MLC',
-                                            'Mid Cap': 'SEQ_MC',
-                                            'Small Cap': 'SEQ_SC',
-                                            'Value': 'SEQ_VAL',
-                                            'ELSS': 'SEQ_ELSS',
-                                            'Contra': 'SEQ_CONT',
-                                            'Dividend Yield': 'SEQ_DIVY',
-                                            'Focused': 'SEQ_FOC'}
+        self._open_ended_equity_category = {'Large Cap': 'SEQ_LC','Large & Mid Cap': 'SEQ_LMC',
+                                            'Multi Cap': 'SEQ_MLC','Mid Cap': 'SEQ_MC',
+                                            'Small Cap': 'SEQ_SC','Value': 'SEQ_VAL',
+                                            'ELSS': 'SEQ_ELSS','Contra': 'SEQ_CONT',
+                                            'Dividend Yield': 'SEQ_DIVY','Focused': 'SEQ_FOC'}
+        self._open_ended_debt_category = {'Long Duration' : 'SDT_LND', 'Medium to Long Duration': 'SDT_MLD',
+                                          'Medium Duration':'SDT_MD','Short Duration':'SDT_SD',
+                                          'Low Duration': 'SDT_LWD', 'Ultra Short Duration':'SDT_USD',
+                                          'Liquid':'SDT_LIQ', 'Money Market':'SDT_MM',
+                                          'Overnight':'SDT_OVNT', 'Dynamic Bond':'SDT_DB',
+                                          'Corporate Bond':'SDT_CB', 'Credit Risk':'SDT_CR',
+                                          'Banking and PSU':'SDT_BPSU', 'Floater':'SDT_FL',
+                                          'FMP':'SDT_FMP', 'Gilt':'SDT_GL',
+                                          'Gilt with 10 year constant duration': 'SDT_GL10CD'}
 
     def get_scheme_codes(self, as_json=False):
         """
@@ -224,6 +223,19 @@ class Mftool():
             scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url, False)
         return self.render_response(scheme_performance,as_json)
 
+    def get_open_ended_debt_scheme_performance(self, as_json=False):
+        """
+        gets the daily performance of open ended debt schemes for all AMCs
+        :return: json format
+        :raises: HTTPError, URLError
+        """
+        get_open_ended_debt_scheme_url = self._get_open_ended_equity_scheme_url.replace('SEQ','SDT')
+        scheme_performance = {}
+        for key in self._open_ended_debt_category.keys():
+            scheme_performance_url = get_open_ended_debt_scheme_url.replace('CAT',self._open_ended_debt_category[key])
+            scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url, False)
+        return self.render_response(scheme_performance,as_json)
+
     def get_daily_scheme_performance(self, performance_url,as_json):
         fund_performance = []
         if self.is_holiday():
@@ -261,4 +273,3 @@ class Mftool():
             return self.render_response(['The underlying data is unavailable for Today'], as_json)
 
         return self.render_response(fund_performance, as_json)
-
