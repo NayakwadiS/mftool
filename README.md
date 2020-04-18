@@ -19,10 +19,6 @@ Main Features:
 * Get daily Scheme performance.
 * Cent percent unittest coverage.
 
-Dependencies
-=============
-To keep it simple and supported on most of the platforms, it uses only core python libraries, hence there are no external dependencies.
-
 Detailed Documentation
 =====================
 
