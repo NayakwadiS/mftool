@@ -158,7 +158,7 @@ programatically as well.
 
 .. note:: 
 
-    Output has been truncated for better legibility. This is a dictionary with more that thousand 
+    Output has been truncated for better legibility. This is a dictionary with more than thousand 
     entries.
 
 
@@ -191,7 +191,7 @@ Methode gives us All Historical Data of scheme.
 
 .. note:: 
 
-    Output has been truncated for better legibility. This is a json with more that thousand 
+    Output has been truncated for better legibility. This is a json with more than thousand 
     entries.
 
 Calculate Market value of Units
