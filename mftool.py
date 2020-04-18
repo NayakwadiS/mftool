@@ -208,7 +208,7 @@ class Mftool():
 
     def get_friday(self):
         days = {'Sat': 1, 'Sun': 2, 'Mon': 3}
-        diff = int(days[date.today().strftime("%a")]) - 1
+        diff = int(days[date.today().strftime("%a")])
         return (date.today() - timedelta(days=diff)).strftime("%d-%b-%Y")
 
     def get_open_ended_equity_scheme_performance(self, as_json=False):
