@@ -320,5 +320,15 @@ Methode gives us Historical Data of scheme for perticular year.
 	 	 {'date': '01-01-2014', 'nav': '11.87130'}
 	 	]
 }	  
- 
+
+
+All AMC profiles
+-------------------------------------------------
+
+Methode gives us Profile data of all AMCs
+
+>>> value = mf.get_all_amc_profiles(True)
+>>> print(value)
+
+
  .. disqus::
