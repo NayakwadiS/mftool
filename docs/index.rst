@@ -327,8 +327,8 @@ All AMC profiles
 
 Methode gives us Profile data of all AMCs
 
->>> value = mf.get_all_amc_profiles(True)
->>> print(value)
+>>> amc_details = mf.get_all_amc_profiles(True)
+>>> print(amc_details)
 
 
  .. disqus::
