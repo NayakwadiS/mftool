@@ -2,24 +2,27 @@
 
 Python library for extracting realtime Mutual Funds data from AMFI (India)
 
-Introduction.
+Introduction
 ============
+mftool is a library for collecting real time Mutual Funds data in India. It can be used in various types of projects which requires getting live quotes for a given scheme or build large data sets for further data analytics. The accuracy of data is only as correct as provided on www.amfiindia.com
 
-mftool is a library for collecting real time data from Association of Mutual Funds in India. It can be used in various types of projects which requires getting live quotes for a given scheme or build large data sets for further data analytics. The accuracy of data is only as correct as provided on www.amfiindia.com
-
-Main Features:
+Main Features
 =============
 
-* Getting last updated quotes for Mutual Fund scheme using scheme codes.
-* Return data in both json and python dict formats.
-* Getting quotes for all the Schemes available in AMFI, e.g Axis, DSP, SBI mutual funds
+* Getting last updated quotes for Mutual fund scheme using scheme codes.
+* Return data in both json and python dictionary formats.
+* Getting quotes for all the schemes available with AMFI, e.g Axis, DSP, SBI mutual funds
 * Helper APIs to check whether a given Scheme code is correct.
-* Getting all Historical nav's for a scheme using scheme code.
-* Getting list of all Schemes with there Scheme codes.
-* Get daily Scheme performance.
+* Getting all historical NAVs for a schemes.
+* Getting list of all schemes with there Scheme codes.
+* Get daily scheme performance.
 * Cent percent unittest coverage.
 
-Detailed Documentation
-=====================
+Dependencies
+=============
+To keep it simple and supported on most of the platforms, it uses only core python libraries, hence there are no external dependencies.
 
-For complete documentation, please refer http://mftool.readthedocs.io
+Detailed Documentation with Examples
+====================================
+http://mftool.readthedocs.io
+
