@@ -6,7 +6,7 @@ import logging
 import json
 import six
 from mftool import Mftool
-
+from bs4 import BeautifulSoup
 
 log = logging.getLogger('mftool')
 logging.basicConfig(level=logging.DEBUG)
