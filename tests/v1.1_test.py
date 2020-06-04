@@ -1,7 +1,7 @@
 
 fund_performance = []
 
-html = requests.get('http://www.valueresearchonline.com/amfi/fund-performance-data/?end-type=1&primary-category=SEQ&category=SEQ_LC&amc=ALL&nav-date=10-Jan-2020')
+html = requests.get('')
 soup = BeautifulSoup(html.text,'html.parser')
 
 # print(soup.prettify())
