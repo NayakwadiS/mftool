@@ -1,6 +1,6 @@
 <img src="./mftool.PNG"  height="150">
 
-Python library for extracting realtime Mutual Funds data from AMFI (India)
+Python library for extracting realtime Mutual Funds data in India
 
 Introduction
 ============
