@@ -31,11 +31,15 @@ class Mftool():
 
     def __init__(self):
         self._session = requests.session()
+        self._user_agent = {'User-Agent': 'Chrome/83.0.4103.61'}
         # URL list
         self._get_quote_url = 'https://www.amfiindia.com/spages/NAVAll.txt'
         self._get_scheme_url = 'https://api.mfapi.in/mf/'
+        self._get_amc_details_url = 'https://www.amfiindia.com/modules/AMCProfileDetail'
         self._get_open_ended_equity_scheme_url = 'http://www.valueresearchonline.com/amfi/fund-performance-data/?' \
                                                  'end-type=1&primary-category=SEQ&category=CAT&amc=ALL'
+        self._get_fund_ranking = 'https://www.crisil.com/content/crisil/en/home/what-we-do/financial-products' \
+                                 '/mf-ranking/_jcr_content/wrapper_100_par/tabs/1/mf_rating.mfRating.json'
         self._open_ended_equity_category = {'Large Cap': 'SEQ_LC','Large & Mid Cap': 'SEQ_LMC',
                                             'Multi Cap': 'SEQ_MLC','Mid Cap': 'SEQ_MC',
                                             'Small Cap': 'SEQ_SC','Value': 'SEQ_VAL',
@@ -273,3 +277,61 @@ class Mftool():
             return self.render_response(['The underlying data is unavailable for Today'], as_json)
 
         return self.render_response(fund_performance, as_json)
+
+    def get_all_amc_profiles(self,as_json):
+        """
+           gets the all AMC profiles details
+           :return: json / dict format
+           :raises: HTTPError, URLError
+       """
+        url = self._get_amc_details_url
+        amc_profiles = []
+        for amc in [3,53,1,4,59,46,32,6,47,54,27,9,37,20,57,48,68,62,65,63,42,70,16,17,56,18,69,45,55,21,58,64,10,13,35,
+                    22,66,33,25,26,61,28,71]:
+            html = requests.post(url,{'Id':amc})
+            # print(html.text)
+            soup = BeautifulSoup(html.text, 'html.parser')
+            rows = soup.select("table tbody tr")
+            amc_details = {}
+            for row in rows:
+                if len(row.findAll('td')) > 1:
+                    amc_details[row.select("td")[0].get_text()] = row.select("td")[1].get_text().strip()
+            amc_profiles.append(amc_details)
+            amc_details = None
+        return self.render_response(amc_profiles, as_json)
+
+    def get_mutual_fund_ranking(self,as_json):
+        """
+           gets the daily CRICIL Ranking of all types of Mutual funds
+           :return: json / dict format
+           :raises: HTTPError, URLError
+       """
+        response = self._session.get(url=self._get_fund_ranking,headers=self._user_agent).json()
+        schemes_data = response['docs']
+        scheme_category = {'ELSS':[],'Focused Fund':[],'Mid Cap Fund':['None'],'Large Cap Fund':[],'Small Cap Fund':[],
+                           'Large and Mid Cap Fund':[],'Index Funds/ETFs':[],'Multi Cap Fund':[],'Banking and PSU Fund':[],
+                           'Dynamic Bond Fund':[],'Gilt Fund':[],'Money Market Fund':[],'Value/Contra Fund':[],
+                           'Low Duration Fund':[],'Medium Duration Fund':[],'Medium to Long Duration Fund':[],
+                           'Conservative Hybrid Fund':[],'Credit Risk Fund':[],'Ultra Short Duration Fund':[],
+                           'Short Duration Fund':[],'Liquid Fund':[],'Arbitrage Fund':[]
+                           }
+
+        for scheme in schemes_data:
+            scheme_info = {}
+            if scheme['categoryName'] in scheme_category:
+                scheme_info['crisilRanking'] = scheme['crisilCprRanking']
+                scheme_info['category'] = scheme['categoryName']
+                scheme_info['type'] = scheme['invtype']
+                scheme_info['fund'] = scheme['fundName']
+                scheme_info['scheme'] = scheme['schemeName']
+                scheme_info['planName'] = scheme['planName']
+                scheme_info['3MonthReturn'] = scheme['scheme3MonthReturn']
+                scheme_info['6MonthReturn'] = scheme['scheme6MonthReturn']
+                scheme_info['1YearReturn'] = scheme['scheme1YearReturn']
+                if scheme['categoryName'] not in ['Short Duration Fund','Liquid Fund','Corporate Bond Fund',
+                                                  'Arbitrage Fund','Ultra Short Duration Fund','Credit Risk Fund']:
+                    scheme_info['3YearReturn'] = scheme['scheme3YearReturn']
+                scheme_category[scheme['categoryName']].append(scheme_info.copy())
+                scheme_info = None
+        return self.render_response(scheme_category, as_json)
+
