@@ -1,270 +1,336 @@
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import *
-from selenium.webdriver import ActionChains
-from selenium.webdriver.remote.webelement import WebElement
-from selenium.webdriver.support.ui import Select
+"""
+    The MIT License (MIT)
+    Copyright (c) 2020 Sujit Nayakwadi
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+"""
+import requests
+import json
+from bs4 import BeautifulSoup
+import datetime
+from datetime import date,timedelta
 
-
-class PageFactory(object):
-    timeout = 10
-    highlight = False
-
-    TYPE_OF_LOCATORS = {
-        'css': By.CSS_SELECTOR,
-        'id': By.ID,
-        'name': By.NAME,
-        'xpath': By.XPATH,
-        'link_text': By.LINK_TEXT,
-        'partial_link_text': By.PARTIAL_LINK_TEXT,
-        'tag': By.TAG_NAME,
-        'class_name': By.CLASS_NAME
-    }
+class Mftool():
+    """
+    class which implements all the functionality for
+    Mutual Funds in India
+    """
 
     def __init__(self):
-        pass
+        self._session = requests.session()
+        self._user_agent = {'User-Agent': 'Chrome/83.0.4103.61'}
+        # URL list
+        self._get_quote_url = 'https://www.amfiindia.com/spages/NAVAll.txt'
+        self._get_scheme_url = 'https://api.mfapi.in/mf/'
+        self._get_amc_details_url = 'https://www.amfiindia.com/modules/AMCProfileDetail'
+        self._get_open_ended_equity_scheme_url = 'http://www.valueresearchonline.com/amfi/fund-performance-data/?' \
+                                                 'end-type=1&primary-category=SEQ&category=CAT&amc=ALL'
+        self._get_fund_ranking = 'https://www.crisil.com/content/crisil/en/home/what-we-do/financial-products' \
+                                 '/mf-ranking/_jcr_content/wrapper_100_par/tabs/1/mf_rating.mfRating.json'
+        self._open_ended_equity_category = {'Large Cap': 'SEQ_LC','Large & Mid Cap': 'SEQ_LMC',
+                                            'Multi Cap': 'SEQ_MLC','Mid Cap': 'SEQ_MC',
+                                            'Small Cap': 'SEQ_SC','Value': 'SEQ_VAL',
+                                            'ELSS': 'SEQ_ELSS','Contra': 'SEQ_CONT',
+                                            'Dividend Yield': 'SEQ_DIVY','Focused': 'SEQ_FOC'}
+        self._open_ended_debt_category = {'Long Duration' : 'SDT_LND', 'Medium to Long Duration': 'SDT_MLD',
+                                          'Medium Duration':'SDT_MD','Short Duration':'SDT_SD',
+                                          'Low Duration': 'SDT_LWD', 'Ultra Short Duration':'SDT_USD',
+                                          'Liquid':'SDT_LIQ', 'Money Market':'SDT_MM',
+                                          'Overnight':'SDT_OVNT', 'Dynamic Bond':'SDT_DB',
+                                          'Corporate Bond':'SDT_CB', 'Credit Risk':'SDT_CR',
+                                          'Banking and PSU':'SDT_BPSU', 'Floater':'SDT_FL',
+                                          'FMP':'SDT_FMP', 'Gilt':'SDT_GL',
+                                          'Gilt with 10 year constant duration': 'SDT_GL10CD'}
 
-    def __get__(self, instance, owner):
-        if not instance:
-            return None
+    def get_scheme_codes(self, as_json=False):
+        """
+        returns a dictionary with key as scheme code and value as scheme name.
+        cache handled internally
+        :return: dict / json
+        """
+        scheme_info = {}
+        url = self._get_quote_url
+        response = self._session.get(url)
+        data = response.text.split("\n")
+        for scheme_data in data:
+            if ";INF" in scheme_data:
+               scheme = scheme_data.split(";")
+               scheme_info[scheme[0]] = scheme[3]
+
+        return self.render_response(scheme_info, as_json)
+
+    def is_valid_code(self, code):
+        """
+        check whether a given scheme code is correct or NOT
+        :param code: a string scheme code
+        :return: Boolean
+        """
+        if code:
+            scheme_codes = self.get_scheme_codes()
+            if code in scheme_codes.keys():
+                return True
+            else:
+                return False
         else:
-            self.driver = instance.driver
+            return False
 
-    def __getattr__(self, loc):
+    def get_scheme_quote(self, code, as_json=False):
+        """
+        gets the quote for a given scheme code
+        :param code: scheme code
+        :return: dict or None
+        :raises: HTTPError, URLError
+        """
+        code = str(code)
+        if self.is_valid_code(code):
+            scheme_info = {}
+            url = self._get_quote_url
+            response = self._session.get(url)
+            data = response.text.split("\n")
+            for scheme_data in data:
+                if code in scheme_data:
+                    scheme = scheme_data.split(";")
+                    scheme_info['scheme_code'] = scheme[0]
+                    scheme_info['scheme_name'] = scheme[3]
+                    scheme_info['last_updated'] = scheme[5].replace("\r", "")
+                    scheme_info['nav'] = scheme[4]
+                    break
+            return self.render_response(scheme_info, as_json)
+        else:
+            return None
 
-        if loc in self.locators.keys():
-            self.locators[loc] = list(self.locators[loc])
-            self.locators[loc][0] = self.TYPE_OF_LOCATORS[self.locators[loc][0].lower()]
-            self.locators[loc] = tuple(self.locators[loc])
-            try:
-                element = WebDriverWait(self.driver, self.timeout).until(
-                    EC.presence_of_element_located(self.locators[loc])
-                )
-            except (StaleElementReferenceException, NoSuchElementException, TimeoutException) as e:
-                raise Exception("An exception of type " + type(e).__name__ + " occurred. With Element -: " + loc)
+    def get_scheme_details(self, code, as_json=False):
+        """
+        gets the scheme info for a given scheme code
+        :param code: scheme code
+        :return: dict or None
+        :raises: HTTPError, URLError
+        """
+        code = str(code)
+        if self.is_valid_code(code):
+            scheme_info = {}
+            url = self._get_scheme_url+code
+            response = self._session.get(url).json()
+            scheme_data = response['meta']
+            scheme_info['fund_house'] = scheme_data['fund_house']
+            scheme_info['scheme_type'] = scheme_data['scheme_type']
+            scheme_info['scheme_category'] = scheme_data['scheme_category']
+            scheme_info['scheme_code'] = scheme_data['scheme_code']
+            scheme_info['scheme_name'] = scheme_data['scheme_name']
+            scheme_info['scheme_start_date'] = response['data'][int(len(response['data']) -1)]
+            return self.render_response(scheme_info, as_json)
+        else:
+            return None
 
-            try:
-                element = WebDriverWait(self.driver, self.timeout).until(
-                    EC.visibility_of_element_located(self.locators[loc])
-                )
-            except (StaleElementReferenceException, NoSuchElementException, TimeoutException) as e:
-                raise Exception("An exception of type " + type(e).__name__ + " occurred. With Element -: " + loc)
+    def get_scheme_historical_nav(self, code, as_json=False):
+        """
+        gets the scheme historical data till last updated for a given scheme code
+        :param code: scheme code
+        :return: dict or None
+        :raises: HTTPError, URLError
+        """
+        code = str(code)
+        if self.is_valid_code(code):
+            scheme_info = {}
+            url = self._get_scheme_url + code
+            response = self._session.get(url).json()
+            scheme_info = self.get_scheme_details(code)
+            scheme_info.update(data= response['data'])
+            return self.render_response(scheme_info, as_json)
+        else:
+            return None
 
-            element = self.get_web_element(*self.locators[loc])
-            element._locator = self.locators[loc]
-            return element
+    def calculate_balance_units_value(self, code, balance_units, as_json=False):
+            """
+            gets the market value of your balance units for a given scheme code
+            :param code: scheme code, balance_units : current balance units
+            :return: dict or None
+            """
+            code = str(code)
+            if self.is_valid_code(code):
+                scheme_info = {}
+                scheme_info = self.get_scheme_quote(code)
+                market_value = float(balance_units)*float(scheme_info['nav'])
+                scheme_info.update(balance_units_value= "{0:.2f}".format(market_value))
+                return self.render_response(scheme_info, as_json)
+            else:
+                return None
 
-    def get_web_element(self, *loc):
-        element = self.driver.find_element(*loc)
-        self.highlight_web_element(element)
-        return element
+    def render_response(self, data, as_json=False):
+            if as_json is True:
+                return json.dumps(data)
+            else:
+                return data
 
-    def highlight_web_element(self, element):
+    def get_scheme_historical_nav_year(self, code, year, as_json=False):
         """
-        To highlight webElement
-        :param: WebElement
-        :return: None
+        gets the scheme historical data of given year for a given scheme code
+        :param code: scheme code
+        :param code: year
+        :return: dict or None
+        :raises: HTTPError, URLError
         """
-        if self.highlight:
-            self.driver.execute_script("arguments[0].style.border='2px ridge #33ffff'", element)
+        code = str(code)
+        if self.is_valid_code(code):
+            scheme_info = {}
+            data = []
+            url = self._get_scheme_url + code
+            response = self._session.get(url).json()
+            nav = self.get_scheme_historical_nav(code)
+            scheme_info = self.get_scheme_details(code)
+            for dat in nav['data']:
+                navDate = dat['date']
+                d = datetime.datetime.strptime(navDate, '%d-%m-%Y')
+                if d.year == int(year):
+                    data.append(dat)
+            if len(data) == 0:
+                data.append({'Error': 'For Year '+str(year)+' Data is NOT available'})
 
-    def select_element_by_text(self, text):
-        """
-        Select webElement from dropdown list
-        :param: Text of Item in dropdown
-        :return: None
-        """
-        select = Select(self)
-        select.select_by_visible_text(text)
+            scheme_info.update(data=data)
+            return self.render_response(scheme_info, as_json)
+        else:
+            return None
 
-    def select_element_by_index(self, index):
-        """
-        Select webElement from dropdown list
-        :param: Index of Item in dropdown
-        :return: None
-        """
-        select = Select(self)
-        select.select_by_index(index)
+    def is_holiday(self):
+        if date.today().strftime("%a") in ['Sat', 'Sun', 'Mon']:
+            return True
+        else:
+            return False
 
-    def select_element_by_value(self, value):
-        """
-        Select webElement from dropdown list
-        :param: value of Item in dropdown
-        :return: None
-        """
-        select = Select(self)
-        select.select_by_value(value)
+    def get_friday(self):
+        days = {'Sat': 1, 'Sun': 2, 'Mon': 3}
+        diff = int(days[date.today().strftime("%a")])
+        return (date.today() - timedelta(days=diff)).strftime("%d-%b-%Y")
 
-    def get_list_item_count(self):
+    def get_open_ended_equity_scheme_performance(self, as_json=False):
         """
-        Count of Item from Dropdown
-        :param: None
-        :return: count
+        gets the daily performance of open ended equity schemes for all AMCs
+        :return: json format
+        :raises: HTTPError, URLError
         """
-        select = Select(self)
-        return len(select.options)
+        scheme_performance = {}
+        for key in self._open_ended_equity_category.keys():
+            scheme_performance_url = self._get_open_ended_equity_scheme_url.replace('CAT',self._open_ended_equity_category[key])
+            scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url, False)
+        return self.render_response(scheme_performance,as_json)
 
-    def get_all_list_item(self):
+    def get_open_ended_debt_scheme_performance(self, as_json=False):
         """
-        Get list of Item from Dropdown
-        :param: None
-        :return: list of items present in dropdown
+        gets the daily performance of open ended debt schemes for all AMCs
+        :return: json format
+        :raises: HTTPError, URLError
         """
-        select = Select(self)
-        list_item = []
-        for item in select.options:
-            list_item.append(item.text)
-        return list_item
+        get_open_ended_debt_scheme_url = self._get_open_ended_equity_scheme_url.replace('SEQ','SDT')
+        scheme_performance = {}
+        for key in self._open_ended_debt_category.keys():
+            scheme_performance_url = get_open_ended_debt_scheme_url.replace('CAT',self._open_ended_debt_category[key])
+            scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url, False)
+        return self.render_response(scheme_performance,as_json)
 
-    def get_list_selected_item(self):
-        """
-        Get list of Selected item in Dropdown
-        :param: None
-        :return: list of items selected in dropdown
-        """
-        select = Select(self)
-        list_item = []
-        for item in select.all_selected_options:
-            list_item.append(item.text)
-        return list_item
+    def get_daily_scheme_performance(self, performance_url,as_json):
+        fund_performance = []
+        if self.is_holiday():
+            url = performance_url + '&nav-date=' + self.get_friday()
+        else:
+            url = performance_url + '&nav-date=' + date.today().strftime("%d-%b-%Y")
+        html = requests.get(url)
+        soup = BeautifulSoup(html.text, 'html.parser')
+        rows = soup.select("table tbody tr")
+        try:
+            for tr in rows:
+                scheme_details = {}
+                cols = tr.select("td.nav.text-right")
+                scheme_details['scheme_name'] = tr.select("td")[0].get_text()
+                scheme_details['benchmark'] = tr.select("td")[1].get_text()
 
-    def click_button(self):
-        """
-        Perform  click on webElement
-        :param: None
-        :return: webElement
-        """
-        self.element_to_be_clickable()
-        self.click()
-        return self
+                scheme_details['latest NAV- Regular'] = cols[0].contents[0]
+                scheme_details['latest NAV- Direct'] = cols[1].contents[0]
 
-    def double_click(self):
-        """
-        perform Double click on webElement
-        :param: None
-        :return: webElement
-        """
-        self.element_to_be_clickable()
-        ActionChains(self.parent).double_click(self).perform()
-        return self
+                oneYr = tr.find_all("td", recursive=False, class_="1Y text-right", limit=2)
+                scheme_details['1-Year Return(%)- Regular'] = oneYr[0].contents[0]
+                scheme_details['1-Year Return(%)- Direct'] = oneYr[1].contents[0]
 
-    def set_text(self, value):
-        """
-        type text in input box
-        :param: Text to be Enter
-        :return: webElement
-        """
-        self.element_to_be_clickable()
-        self.send_keys(value)
-        return self
+                threeYr = tr.find_all("td", recursive=False, class_="3Y text-right hidden", limit=2)
+                scheme_details['3-Year Return(%)- Regular'] = threeYr[0].contents[0]
+                scheme_details['3-Year Return(%)- Direct'] = threeYr[1].contents[0]
 
-    def get_text(self):
-        """
-        get text from input box
-        :param: None
-        :return: text from webElement
-        """
-        return self.text
+                fiveYr = tr.find_all("td", recursive=False, class_="5Y text-right hidden", limit=2)
+                scheme_details['5-Year Return(%)- Regular'] = fiveYr[0].contents[0]
+                scheme_details['5-Year Return(%)- Direct'] = fiveYr[1].contents[0]
 
-    def clear_text(self):
-        """
-        Clear text from EditBox
-        :param: None
-        :return: None
-        """
-        self.clear()
+                fund_performance.append(scheme_details)
 
-    def hover(self):
-        """
-        perform hover operation on webElement
-        :param: None
-        :return: None
-        """
-        ActionChains(self.parent).move_to_element(self).perform()
+        except Exception:
+            return self.render_response(['The underlying data is unavailable for Today'], as_json)
 
-    def is_Checked(self):
-        """
-        Check Radio button / CheckBox is selected
-        :param: None
-        :return: Boolean
-        """
-        return self.isSelected()
+        return self.render_response(fund_performance, as_json)
 
-    def is_Enabled(self):
+    def get_all_amc_profiles(self,as_json):
         """
-        get Enable state of webElement
-        :param: None
-        :return: Boolean
-        """
-        return self.isEnabled()
+           gets the all AMC profiles details
+           :return: json / dict format
+           :raises: HTTPError, URLError
+       """
+        url = self._get_amc_details_url
+        amc_profiles = []
+        for amc in [3,53,1,4,59,46,32,6,47,54,27,9,37,20,57,48,68,62,65,63,42,70,16,17,56,18,69,45,55,21,58,64,10,13,35,
+                    22,66,33,25,26,61,28,71]:
+            html = requests.post(url,{'Id':amc})
+            # print(html.text)
+            soup = BeautifulSoup(html.text, 'html.parser')
+            rows = soup.select("table tbody tr")
+            amc_details = {}
+            for row in rows:
+                if len(row.findAll('td')) > 1:
+                    amc_details[row.select("td")[0].get_text()] = row.select("td")[1].get_text().strip()
+            amc_profiles.append(amc_details)
+            amc_details = None
+        return self.render_response(amc_profiles, as_json)
 
-    def getAttribute(self, attributeName):
+    def get_mutual_fund_ranking(self,as_json):
         """
-        get webElement attribute
-        :param: name of Attribute
-        :return: webElement attribute value
-        """
-        return self.get_attribute(attributeName)
+           gets the daily CRICIL Ranking of all types of Mutual funds
+           :return: json / dict format
+           :raises: HTTPError, URLError
+       """
+        response = self._session.get(url=self._get_fund_ranking,headers=self._user_agent).json()
+        schemes_data = response['docs']
+        scheme_category = {'ELSS':[],'Focused Fund':[],'Mid Cap Fund':['None'],'Large Cap Fund':[],'Small Cap Fund':[],
+                           'Large and Mid Cap Fund':[],'Index Funds/ETFs':[],'Multi Cap Fund':[],'Banking and PSU Fund':[],
+                           'Dynamic Bond Fund':[],'Gilt Fund':[],'Money Market Fund':[],'Value/Contra Fund':[],
+                           'Low Duration Fund':[],'Medium Duration Fund':[],'Medium to Long Duration Fund':[],
+                           'Conservative Hybrid Fund':[],'Credit Risk Fund':[],'Ultra Short Duration Fund':[],
+                           'Short Duration Fund':[],'Liquid Fund':[],'Arbitrage Fund':[]
+                           }
 
-    def w3c(self):
-        return self.w3c
-
-    def element_to_be_clickable(self, timeout=None):
-        """
-        Wait till the element to be clickable
-        """
-        if timeout is None:
-            timeout = PageFactory().timeout
-        return WebDriverWait(self.parent, timeout).until(
-            EC.element_to_be_clickable(self._locator)
-        )
-
-    def invisibility_of_element_located(self, timeout=None):
-        """
-        Wait till the element to be invisible
-        """
-        if timeout is None:
-            timeout = PageFactory().timeout
-        return WebDriverWait(self.parent, timeout).until(
-            EC.invisibility_of_element_located(self._locator)
-        )
-
-    def visibility_of_element_located(self, timeout=None):
-        """
-        Wait till the element to be visible
-        """
-        if timeout is None:
-            timeout = PageFactory().timeout
-        return WebDriverWait(self.parent, timeout).until(
-            EC.visibility_of(self)
-        )
-
-    def execute_script(self, script):
-        """
-        Execute JavaScript using web driver
-        """
-        self.parent.execute_script(script, self)
-
-
-WebElement.click_button = PageFactory.click_button
-WebElement.double_click = PageFactory.double_click
-WebElement.element_to_be_clickable = PageFactory.element_to_be_clickable
-WebElement.invisibility_of_element_located = PageFactory.invisibility_of_element_located
-WebElement.visibility_of_element_located = PageFactory.visibility_of_element_located
-WebElement.set_text = PageFactory.set_text
-WebElement.get_text = PageFactory.get_text
-WebElement.hover = PageFactory.hover
-WebElement.clear_text = PageFactory.clear_text
-WebElement.w3c = PageFactory.w3c
-WebElement.is_Checked = PageFactory.is_Checked
-WebElement.is_Enabled = PageFactory.is_Enabled
-WebElement.getAttribute = PageFactory.getAttribute
-WebElement.select_element_by_text = PageFactory.select_element_by_text
-WebElement.select_element_by_index = PageFactory.select_element_by_index
-WebElement.select_element_by_value = PageFactory.select_element_by_value
-WebElement.get_list_item_count = PageFactory.get_list_item_count
-WebElement.get_all_list_item = PageFactory.get_all_list_item
-WebElement.get_list_selected_item = PageFactory.get_list_selected_item
-WebElement.execute_script = PageFactory.execute_script
-
+        for scheme in schemes_data:
+            scheme_info = {}
+            if scheme['categoryName'] in scheme_category:
+                scheme_info['crisilRanking'] = scheme['crisilCprRanking']
+                scheme_info['category'] = scheme['categoryName']
+                scheme_info['type'] = scheme['invtype']
+                scheme_info['fund'] = scheme['fundName']
+                scheme_info['scheme'] = scheme['schemeName']
+                scheme_info['planName'] = scheme['planName']
+                scheme_info['3MonthReturn'] = scheme['scheme3MonthReturn']
+                scheme_info['6MonthReturn'] = scheme['scheme6MonthReturn']
+                scheme_info['1YearReturn'] = scheme['scheme1YearReturn']
+                if scheme['categoryName'] not in ['Short Duration Fund','Liquid Fund','Corporate Bond Fund',
+                                                  'Arbitrage Fund','Ultra Short Duration Fund','Credit Risk Fund']:
+                    scheme_info['3YearReturn'] = scheme['scheme3YearReturn']
+                scheme_category[scheme['categoryName']].append(scheme_info.copy())
+                scheme_info = None
+        return self.render_response(scheme_category, as_json)
