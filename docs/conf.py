@@ -10,7 +10,7 @@ master_doc = 'index'
 
 html_favicon = 'mftool.png'
 
-html_static_path = ['_static']
+#html_static_path = ['_static']
 
 #def setup(app):
 #    app.add_stylesheet('css/custom.css')
