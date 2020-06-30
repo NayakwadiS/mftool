@@ -1,0 +1,78 @@
+.wy-side-nav-search {
+    /* Rainforest alliance light gray */
+    background-color: #325270;
+}
+
+.wy-nav-side {
+    /* GCP Doger gray */
+    background: #1E90FF;
+    /* GCP green on brown */
+    color: #799d44;
+}
+
+.rst-versions .rst-current-version {
+    /* GCP red */
+    background: #325270;
+}
+
+.wy-nav-content {
+    max-width: inherit;
+}
+
+.wy-side-scroll {
+    width: auto;
+    overflow-y: auto;
+}
+
+p {
+    margin-bottom: 0.5rem;
+}
+
+h1, h2, h3, h4, h5 {
+    margin-bottom: 12px;
+}
+
+#global-coffee-data-standard h2 {
+    /* Rainforest alliance green */
+    border-top: 3px dashed #4e917a;
+    padding-top: 0.5rem;
+    margin-top: 1rem;
+}
+
+.caption-text {
+    font-weight: bold;
+}
+
+
+div.wy-table-responsive > table.docutils td {
+    word-wrap: break-word;
+    white-space: inherit;
+    max-width: 20%;
+}
+
+div.wy-table-responsive > table.docutils td:nth-child(3) {
+    max-width: 40%;
+}
+
+div:not(#contents).topic {
+    /* Rainforest alliance green */
+    border: 1px solid #4e917a;
+    padding: 3px;
+    width: 100%;
+    border-radius: 3px;
+}
+
+div.topic p,
+div.topic p.topic-title {
+    margin-bottom: 0;
+}
+
+div:not(#contents).topic p.topic-title {
+    display: none;
+}
+
+button.btn-example-data {
+    background-color: #4e917a !important;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
