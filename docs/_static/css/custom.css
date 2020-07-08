@@ -4,7 +4,7 @@
 }
 
 .wy-nav-side {
-    /* GCP Doger gray */
+    /* menu */
     background: #456e96;
     /* GCP green on brown */
     color: #799d44;
@@ -14,9 +14,8 @@
      background-color: #325270;
 }
 .wy-alert-title, .rst-content .admonition-title {
-    /* GCP red */
-    background: #456e96;
-    color: #799d44;
+    /* Note */
+    background: #325270;
 }
 
 .wy-nav-content {
