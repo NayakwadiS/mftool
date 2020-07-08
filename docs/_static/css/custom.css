@@ -10,9 +10,9 @@
     color: #799d44;
 }
 
-.rst-versions .rst-current-version {
+.wy-alert-title, .rst-content .admonition-title {
     /* GCP red */
-    background: #325270;
+    background: #456e96;
 }
 
 .wy-nav-content {
