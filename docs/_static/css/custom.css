@@ -13,6 +13,7 @@
 .wy-alert-title, .rst-content .admonition-title {
     /* GCP red */
     background: #456e96;
+    color: #799d44;
 }
 
 .wy-nav-content {
