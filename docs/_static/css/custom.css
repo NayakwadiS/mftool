@@ -9,7 +9,10 @@
     /* GCP green on brown */
     color: #799d44;
 }
-
+.rst-versions .rst-current-version{
+    /*footer*/
+     background-color: #325270;
+}
 .wy-alert-title, .rst-content .admonition-title {
     /* GCP red */
     background: #456e96;
