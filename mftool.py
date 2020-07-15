@@ -36,10 +36,10 @@ class Mftool():
         self._get_quote_url = 'https://www.amfiindia.com/spages/NAVAll.txt'
         self._get_scheme_url = 'https://api.mfapi.in/mf/'
         self._get_amc_details_url = 'https://www.amfiindia.com/modules/AMCProfileDetail'
-        self._get_open_ended_equity_scheme_url = 'http://www.valueresearchonline.com/amfi/fund-performance-data/?' \
-                                                 'end-type=1&primary-category=SEQ&category=CAT&amc=ALL'
         self._get_fund_ranking = 'https://www.crisil.com/content/crisil/en/home/what-we-do/financial-products' \
                                  '/mf-ranking/_jcr_content/wrapper_100_par/tabs/1/mf_rating.mfRating.json'
+        self._get_open_ended_equity_scheme_url = 'http://www.valueresearchonline.com/amfi/fund-performance-data/?' \
+                                                 'end-type=1&primary-category=SEQ&category=CAT&amc=ALL'
         self._open_ended_equity_category = {'Large Cap': 'SEQ_LC','Large & Mid Cap': 'SEQ_LMC',
                                             'Multi Cap': 'SEQ_MLC','Mid Cap': 'SEQ_MC',
                                             'Small Cap': 'SEQ_SC','Value': 'SEQ_VAL',
@@ -54,6 +54,9 @@ class Mftool():
                                           'Banking and PSU':'SDT_BPSU', 'Floater':'SDT_FL',
                                           'FMP':'SDT_FMP', 'Gilt':'SDT_GL',
                                           'Gilt with 10 year constant duration': 'SDT_GL10CD'}
+        self._open_ended_hybrid_category= {'Aggressive Hybrid':'SHY_AH','Balanced Hybrid':'SHY_BH',
+                                            'Conservative Hybrid':'SHY_CH','Equity Savings':'SHY_EQS',
+                                            'Arbitrage':'SHY_AR','Multi Asset Allocation':'SHY_MAA'}
 
     def get_scheme_codes(self, as_json=False):
         """
@@ -215,6 +218,9 @@ class Mftool():
         diff = int(days[date.today().strftime("%a")])
         return (date.today() - timedelta(days=diff)).strftime("%d-%b-%Y")
 
+    def get_today(self):
+        return (date.today() - timedelta(days=1)).strftime("%d-%b-%Y")
+
     def get_open_ended_equity_scheme_performance(self, as_json=False):
         """
         gets the daily performance of open ended equity schemes for all AMCs
@@ -240,12 +246,25 @@ class Mftool():
             scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url, False)
         return self.render_response(scheme_performance,as_json)
 
+    def get_open_ended_hybrid_scheme_performance(self, as_json=False):
+        """
+        gets the daily performance of open ended hybrid schemes for all AMCs
+        :return: json format
+        :raises: HTTPError, URLError
+        """
+        get_open_ended_debt_scheme_url = self._get_open_ended_equity_scheme_url.replace('SEQ','SHY')
+        scheme_performance = {}
+        for key in self._open_ended_hybrid_category.keys():
+            scheme_performance_url = get_open_ended_debt_scheme_url.replace('CAT',self._open_ended_hybrid_category[key])
+            scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url, False)
+        return self.render_response(scheme_performance,as_json)
+
     def get_daily_scheme_performance(self, performance_url,as_json):
         fund_performance = []
         if self.is_holiday():
             url = performance_url + '&nav-date=' + self.get_friday()
         else:
-            url = performance_url + '&nav-date=' + date.today().strftime("%d-%b-%Y")
+            url = performance_url + '&nav-date=' + self.get_today()
         html = requests.get(url)
         soup = BeautifulSoup(html.text, 'html.parser')
         rows = soup.select("table tbody tr")
@@ -256,20 +275,20 @@ class Mftool():
                 scheme_details['scheme_name'] = tr.select("td")[0].get_text()
                 scheme_details['benchmark'] = tr.select("td")[1].get_text()
 
-                scheme_details['latest NAV- Regular'] = cols[0].contents[0]
-                scheme_details['latest NAV- Direct'] = cols[1].contents[0]
+                scheme_details['latest NAV- Regular'] = tr.select("td")[2].get_text().strip()
+                scheme_details['latest NAV- Direct'] = tr.select("td")[3].get_text().strip()
 
-                oneYr = tr.find_all("td", recursive=False, class_="1Y text-right", limit=2)
-                scheme_details['1-Year Return(%)- Regular'] = oneYr[0].contents[0]
-                scheme_details['1-Year Return(%)- Direct'] = oneYr[1].contents[0]
+                regData = tr.find_all("td", recursive=False,class_="text-right period-return-reg", limit=1)
+                dirData = tr.find_all("td", recursive=False, class_="text-right period-return-dir", limit=1)
 
-                threeYr = tr.find_all("td", recursive=False, class_="3Y text-right hidden", limit=2)
-                scheme_details['3-Year Return(%)- Regular'] = threeYr[0].contents[0]
-                scheme_details['3-Year Return(%)- Direct'] = threeYr[1].contents[0]
+                scheme_details['1-Year Return(%)- Regular'] = regData[0]['data-1y']
+                scheme_details['1-Year Return(%)- Direct'] = dirData[0]['data-1y']
 
-                fiveYr = tr.find_all("td", recursive=False, class_="5Y text-right hidden", limit=2)
-                scheme_details['5-Year Return(%)- Regular'] = fiveYr[0].contents[0]
-                scheme_details['5-Year Return(%)- Direct'] = fiveYr[1].contents[0]
+                scheme_details['3-Year Return(%)- Regular'] = regData[0]['data-3y']
+                scheme_details['3-Year Return(%)- Direct'] = dirData[0]['data-3y']
+
+                scheme_details['5-Year Return(%)- Regular'] = regData[0]['data-5y']
+                scheme_details['5-Year Return(%)- Direct'] = dirData[0]['data-5y']
 
                 fund_performance.append(scheme_details)
 
@@ -279,17 +298,11 @@ class Mftool():
         return self.render_response(fund_performance, as_json)
 
     def get_all_amc_profiles(self,as_json):
-        """
-           gets the all AMC profiles details
-           :return: json / dict format
-           :raises: HTTPError, URLError
-       """
         url = self._get_amc_details_url
         amc_profiles = []
         for amc in [3,53,1,4,59,46,32,6,47,54,27,9,37,20,57,48,68,62,65,63,42,70,16,17,56,18,69,45,55,21,58,64,10,13,35,
                     22,66,33,25,26,61,28,71]:
             html = requests.post(url,{'Id':amc})
-            # print(html.text)
             soup = BeautifulSoup(html.text, 'html.parser')
             rows = soup.select("table tbody tr")
             amc_details = {}
@@ -300,20 +313,22 @@ class Mftool():
             amc_details = None
         return self.render_response(amc_profiles, as_json)
 
-    def get_mutual_fund_ranking(self,as_json):
+    def get_mutual_fund_ranking(self, as_json):
         """
            gets the daily CRICIL Ranking of all types of Mutual funds
            :return: json / dict format
            :raises: HTTPError, URLError
        """
-        response = self._session.get(url=self._get_fund_ranking,headers=self._user_agent).json()
+        response = self._session.get(url=self._get_fund_ranking, headers=self._user_agent).json()
         schemes_data = response['docs']
-        scheme_category = {'ELSS':[],'Focused Fund':[],'Mid Cap Fund':['None'],'Large Cap Fund':[],'Small Cap Fund':[],
-                           'Large and Mid Cap Fund':[],'Index Funds/ETFs':[],'Multi Cap Fund':[],'Banking and PSU Fund':[],
-                           'Dynamic Bond Fund':[],'Gilt Fund':[],'Money Market Fund':[],'Value/Contra Fund':[],
-                           'Low Duration Fund':[],'Medium Duration Fund':[],'Medium to Long Duration Fund':[],
-                           'Conservative Hybrid Fund':[],'Credit Risk Fund':[],'Ultra Short Duration Fund':[],
-                           'Short Duration Fund':[],'Liquid Fund':[],'Arbitrage Fund':[]
+        scheme_category = {'ELSS': [], 'Focused Fund': [], 'Mid Cap Fund': ['None'], 'Large Cap Fund': [],
+                           'Small Cap Fund': [],
+                           'Large and Mid Cap Fund': [], 'Index Funds/ETFs': [], 'Multi Cap Fund': [],
+                           'Banking and PSU Fund': [],
+                           'Dynamic Bond Fund': [], 'Gilt Fund': [], 'Money Market Fund': [], 'Value/Contra Fund': [],
+                           'Low Duration Fund': [], 'Medium Duration Fund': [], 'Medium to Long Duration Fund': [],
+                           'Conservative Hybrid Fund': [], 'Credit Risk Fund': [], 'Ultra Short Duration Fund': [],
+                           'Short Duration Fund': [], 'Liquid Fund': [], 'Arbitrage Fund': []
                            }
 
         for scheme in schemes_data:
@@ -328,8 +343,8 @@ class Mftool():
                 scheme_info['3MonthReturn'] = scheme['scheme3MonthReturn']
                 scheme_info['6MonthReturn'] = scheme['scheme6MonthReturn']
                 scheme_info['1YearReturn'] = scheme['scheme1YearReturn']
-                if scheme['categoryName'] not in ['Short Duration Fund','Liquid Fund','Corporate Bond Fund',
-                                                  'Arbitrage Fund','Ultra Short Duration Fund','Credit Risk Fund']:
+                if scheme['categoryName'] not in ['Short Duration Fund', 'Liquid Fund', 'Corporate Bond Fund',
+                                                  'Arbitrage Fund', 'Ultra Short Duration Fund', 'Credit Risk Fund']:
                     scheme_info['3YearReturn'] = scheme['scheme3YearReturn']
                 scheme_category[scheme['categoryName']].append(scheme_info.copy())
                 scheme_info = None
