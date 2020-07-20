@@ -57,6 +57,15 @@ class Mftool():
         self._open_ended_hybrid_category= {'Aggressive Hybrid':'SHY_AH','Balanced Hybrid':'SHY_BH',
                                             'Conservative Hybrid':'SHY_CH','Equity Savings':'SHY_EQS',
                                             'Arbitrage':'SHY_AR','Multi Asset Allocation':'SHY_MAA'}
+    def set_proxy(self,proxy):
+        """
+        To set up proxies before getting any data. This is optional method to work with proxy server.
+        :param proxy: dictionary of proxies as
+                proxy = { 'http': 'http://user:pass@10.10.1.0:1080',
+                          'https': 'http://user:pass@10.10.1.0:1090'}
+        :return: None
+        """
+        self._session.proxies = proxy
 
     def get_scheme_codes(self, as_json=False):
         """
