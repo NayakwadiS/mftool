@@ -1,0 +1,49 @@
+{
+	"get_quote_url": "https://www.amfiindia.com/spages/NAVAll.txt",
+	"get_scheme_url": "https://api.mfapi.in/mf/",
+	"get_amc_details_url": "https://www.amfiindia.com/modules/AMCProfileDetail",
+	"get_fund_ranking": "https://www.crisil.com/content/crisil/en/home/what-we-do/financial-products/mf-ranking/_jcr_content/wrapper_100_par/tabs/1/mf_rating.mfRating.json",
+	"get_open_ended_equity_scheme_url": "http://www.valueresearchonline.com/amfi/fund-performance-data/?end-type=1&primary-category=SEQ&category=CAT&amc=ALL",
+	"open_ended_equity_category": {
+		"Large Cap": "SEQ_LC",
+		"Large & Mid Cap": "SEQ_LMC",
+		"Multi Cap": "SEQ_MLC",
+		"Mid Cap": "SEQ_MC",
+		"Small Cap": "SEQ_SC",
+		"Value": "SEQ_VAL",
+		"ELSS": "SEQ_ELSS",
+		"Contra": "SEQ_CONT",
+		"Dividend Yield": "SEQ_DIVY",
+		"Focused": "SEQ_FOC"
+	},
+	"open_ended_debt_category": {
+		"Long Duration": "SDT_LND",
+		"Medium to Long Duration": "SDT_MLD",
+		"Medium Duration": "SDT_MD",
+		"Short Duration": "SDT_SD",
+		"Low Duration": "SDT_LWD",
+		"Ultra Short Duration": "SDT_USD",
+		"Liquid": "SDT_LIQ",
+		"Money Market": "SDT_MM",
+		"Overnight": "SDT_OVNT",
+		"Dynamic Bond": "SDT_DB",
+		"Corporate Bond": "SDT_CB",
+		"Credit Risk": "SDT_CR",
+		"Banking and PSU": "SDT_BPSU",
+		"Floater": "SDT_FL",
+		"FMP": "SDT_FMP",
+		"Gilt": "SDT_GL",
+		"Gilt with 10 year constant duration": "SDT_GL10CD"
+	},
+	"open_ended_hybrid_category": {
+		"Aggressive Hybrid": "SHY_AH",
+		"Balanced Hybrid": "SHY_BH",
+		"Conservative Hybrid": "SHY_CH",
+		"Equity Savings": "SHY_EQS",
+		"Arbitrage": "SHY_AR",
+		"Multi Asset Allocation": "SHY_MAA"
+	},
+	"amc": [3, 53, 1, 4, 59, 46, 32, 6, 47, 54, 27, 9, 37, 20, 57, 48, 68, 62, 65, 63, 42, 70, 16, 17, 56, 18, 69, 45, 55, 21, 58, 64, 10, 13, 35,
+		22, 66, 33, 25, 26, 61, 28, 71
+	]
+}
