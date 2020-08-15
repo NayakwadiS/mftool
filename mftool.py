@@ -17,6 +17,7 @@
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 """
+import os
 import requests
 import json
 from bs4 import BeautifulSoup
@@ -32,35 +33,27 @@ class Mftool():
     def __init__(self):
         self._session = requests.session()
         self._user_agent = {'User-Agent': 'Chrome/83.0.4103.61'}
+        self._filepath = str(os.path.dirname(os.path.abspath(__file__)))+'/const.json'
+        self._const = self.init_const()
         # URL list
-        self._get_quote_url = 'https://www.amfiindia.com/spages/NAVAll.txt'
-        self._get_scheme_url = 'https://api.mfapi.in/mf/'
-        self._get_amc_details_url = 'https://www.amfiindia.com/modules/AMCProfileDetail'
-        self._get_fund_ranking = 'https://www.crisil.com/content/crisil/en/home/what-we-do/financial-products' \
-                                 '/mf-ranking/_jcr_content/wrapper_100_par/tabs/1/mf_rating.mfRating.json'
-        self._get_open_ended_equity_scheme_url = 'http://www.valueresearchonline.com/amfi/fund-performance-data/?' \
-                                                 'end-type=1&primary-category=SEQ&category=CAT&amc=ALL'
-        self._open_ended_equity_category = {'Large Cap': 'SEQ_LC','Large & Mid Cap': 'SEQ_LMC',
-                                            'Multi Cap': 'SEQ_MLC','Mid Cap': 'SEQ_MC',
-                                            'Small Cap': 'SEQ_SC','Value': 'SEQ_VAL',
-                                            'ELSS': 'SEQ_ELSS','Contra': 'SEQ_CONT',
-                                            'Dividend Yield': 'SEQ_DIVY','Focused': 'SEQ_FOC'}
-        self._open_ended_debt_category = {'Long Duration' : 'SDT_LND', 'Medium to Long Duration': 'SDT_MLD',
-                                          'Medium Duration':'SDT_MD','Short Duration':'SDT_SD',
-                                          'Low Duration': 'SDT_LWD', 'Ultra Short Duration':'SDT_USD',
-                                          'Liquid':'SDT_LIQ', 'Money Market':'SDT_MM',
-                                          'Overnight':'SDT_OVNT', 'Dynamic Bond':'SDT_DB',
-                                          'Corporate Bond':'SDT_CB', 'Credit Risk':'SDT_CR',
-                                          'Banking and PSU':'SDT_BPSU', 'Floater':'SDT_FL',
-                                          'FMP':'SDT_FMP', 'Gilt':'SDT_GL',
-                                          'Gilt with 10 year constant duration': 'SDT_GL10CD'}
-        self._open_ended_hybrid_category= {'Aggressive Hybrid':'SHY_AH','Balanced Hybrid':'SHY_BH',
-                                            'Conservative Hybrid':'SHY_CH','Equity Savings':'SHY_EQS',
-                                            'Arbitrage':'SHY_AR','Multi Asset Allocation':'SHY_MAA'}
+        self._get_quote_url = self._const['get_quote_url']
+        self._get_scheme_url = self._const['get_scheme_url']
+        self._get_amc_details_url = self._const['get_amc_details_url']
+        self._get_fund_ranking = self._const['get_fund_ranking']
+        self._get_open_ended_equity_scheme_url = self._const['get_open_ended_equity_scheme_url']
+        self._open_ended_equity_category = self._const['open_ended_equity_category']
+        self._open_ended_debt_category = self._const['open_ended_debt_category']
+        self._open_ended_hybrid_category= self._const['open_ended_hybrid_category']
+        self._amc=self._const['amc']
+
+    def init_const(self):
+        with open(self._filepath, 'r') as f:
+            return json.load(f)
+
     def set_proxy(self,proxy):
         """
-        To set up proxies before getting any data. This is optional method to work with proxy server.
-        :param proxy: dictionary of proxies as
+        This is optional method to work with proxy server before getting any data.
+        :param proxy: provide dictionary for proxies setup as
                 proxy = { 'http': 'http://user:pass@10.10.1.0:1080',
                           'https': 'http://user:pass@10.10.1.0:1090'}
         :return: None
@@ -309,8 +302,7 @@ class Mftool():
     def get_all_amc_profiles(self,as_json):
         url = self._get_amc_details_url
         amc_profiles = []
-        for amc in [3,53,1,4,59,46,32,6,47,54,27,9,37,20,57,48,68,62,65,63,42,70,16,17,56,18,69,45,55,21,58,64,10,13,35,
-                    22,66,33,25,26,61,28,71]:
+        for amc in self._amc:
             html = requests.post(url,{'Id':amc})
             soup = BeautifulSoup(html.text, 'html.parser')
             rows = soup.select("table tbody tr")
