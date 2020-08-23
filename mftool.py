@@ -60,7 +60,7 @@ class Mftool():
         """
         self._session.proxies = proxy
 
-    def get_scheme_codes(self, as_json=False):
+    def get_scheme_codes(self,code=None, as_json=False):
         """
         returns a dictionary with key as scheme code and value as scheme name.
         cache handled internally
@@ -73,7 +73,14 @@ class Mftool():
         for scheme_data in data:
             if ";INF" in scheme_data:
                scheme = scheme_data.split(";")
-               scheme_info[scheme[0]] = scheme[3]
+               scheme_info[scheme[0]] = {'scheme_code':scheme[0],
+                                         'scheme_name':scheme[3],
+                                         'last_updated':scheme[5].replace("\r", ""),
+                                         'nav':scheme[4]
+                                         }
+
+               if code and scheme[0] == str(code):
+                   break
 
         return self.render_response(scheme_info, as_json)
 
@@ -84,8 +91,8 @@ class Mftool():
         :return: Boolean
         """
         if code:
-            scheme_codes = self.get_scheme_codes()
-            if code in scheme_codes.keys():
+            self.scheme_codes = self.get_scheme_codes(code)
+            if code in self.scheme_codes.keys():
                 return True
             else:
                 return False
@@ -101,19 +108,7 @@ class Mftool():
         """
         code = str(code)
         if self.is_valid_code(code):
-            scheme_info = {}
-            url = self._get_quote_url
-            response = self._session.get(url)
-            data = response.text.split("\n")
-            for scheme_data in data:
-                if code in scheme_data:
-                    scheme = scheme_data.split(";")
-                    scheme_info['scheme_code'] = scheme[0]
-                    scheme_info['scheme_name'] = scheme[3]
-                    scheme_info['last_updated'] = scheme[5].replace("\r", "")
-                    scheme_info['nav'] = scheme[4]
-                    break
-            return self.render_response(scheme_info, as_json)
+            return self.render_response(self.scheme_codes[code], as_json)
         else:
             return None
 
