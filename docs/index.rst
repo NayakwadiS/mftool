@@ -51,12 +51,6 @@ exception.
     You need to have a working internet connection while using this library. It will raise URLErorr 
     in case there is no internet connectivity. Hence please handle this scenario in your code.
 
-.. warning::
-
-    If you are facing any issue with the APIs then it may be beacuse there had been some format 
-    change recently in the way AMFI reports its live quotes. Please upgrade to the latest version 
-    in order to avoid this issue.
-
 	
 API Walkthrough with Examples
 =============================
@@ -76,7 +70,7 @@ further customize it.
 Instantiation
 --------------
 
-mftool uses www.amfiindia.com as a data source. 
+mftool uses amfiindia as a data source. 
 
 As mentioned earlier, mftool comes pre-built with all the right url mappings and hence 
 instantiating it requires no contructor arguments.
@@ -86,10 +80,6 @@ instantiating it requires no contructor arguments.
 >>> print mf
 Driver Class for The Association of Mutual Funds in India (AMFI)
 
-.. note:: 
-    
-    Please make sure that you are connected to internet while using this library. It 
-    will raise URLError in case of any network glitch.
 
 Getting a Scheme Quote
 ----------------------
