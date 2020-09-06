@@ -3,7 +3,7 @@ Introduction
 
 mftool is a library for collecting real time data from Association of Mutual Funds in India.
 It can be used in various types of projects which requires getting live quotes for a given scheme or build large data sets for further data analytics.
-The accuracy of data is only as correct as provided on www.amfiindia.com
+The accuracy of data is only as correct as provided on amfiindia
 
 
 Github Project Page
