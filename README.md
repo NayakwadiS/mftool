@@ -1,6 +1,6 @@
 <img src="./mftool.PNG"  height="150">
 
-Python library for extracting realtime Mutual Funds data in India
+Python library for collecting realtime Mutual Funds data in India
 
 ![Python](https://img.shields.io/badge/python-v3.7+-blue.svg)
 [![Pypi](https://img.shields.io/badge/pypi-v1.6-green)](https://pypi.python.org/pypi/mftool)
@@ -10,9 +10,9 @@ Python library for extracting realtime Mutual Funds data in India
 
 Introduction
 ============
-mftool is a library for collecting real time Mutual Funds data in India. It can be used in various types of projects which requires getting live quotes for a given scheme or build large data sets for further data analytics. The accuracy of data is only as correct as provided on amfiindia
+mftool is a library for collecting real time Mutual Funds data in India. It can be used in various types of projects which requires getting live quotes for a given scheme or build large data sets for further data analytics.
 
-Main Features
+Features
 =============
 
 * Getting last updated quotes for Mutual fund scheme using scheme codes.
@@ -26,7 +26,7 @@ Main Features
 
 Dependencies
 =============
-To keep it simple and supported on most of the platforms, it uses only core python libraries, hence there are no external dependencies.
+There are no external dependencies.
 
 Detailed Documentation with Examples
 ====================================
