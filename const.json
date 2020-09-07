@@ -2,7 +2,6 @@
 	"get_quote_url": "https://www.amfiindia.com/spages/NAVAll.txt",
 	"get_scheme_url": "https://api.mfapi.in/mf/",
 	"get_amc_details_url": "https://www.amfiindia.com/modules/AMCProfileDetail",
-	"get_fund_ranking": "https://www.crisil.com/content/crisil/en/home/what-we-do/financial-products/mf-ranking/_jcr_content/wrapper_100_par/tabs/1/mf_rating.mfRating.json",
 	"get_open_ended_equity_scheme_url": "http://www.valueresearchonline.com/amfi/fund-performance-data/?end-type=1&primary-category=SEQ&category=CAT&amc=ALL",
 	"open_ended_equity_category": {
 		"Large Cap": "SEQ_LC",
