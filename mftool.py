@@ -32,19 +32,19 @@ class Mftool():
 
     def __init__(self):
         self._session = requests.session()
-        self._user_agent = {'User-Agent': 'Chrome/83.0.4103.61'}
         self._filepath = str(os.path.dirname(os.path.abspath(__file__)))+'/const.json'
         self._const = self.init_const()
         # URL list
         self._get_quote_url = self._const['get_quote_url']
         self._get_scheme_url = self._const['get_scheme_url']
         self._get_amc_details_url = self._const['get_amc_details_url']
-        self._get_fund_ranking = self._const['get_fund_ranking']
         self._get_open_ended_equity_scheme_url = self._const['get_open_ended_equity_scheme_url']
         self._open_ended_equity_category = self._const['open_ended_equity_category']
         self._open_ended_debt_category = self._const['open_ended_debt_category']
         self._open_ended_hybrid_category= self._const['open_ended_hybrid_category']
         self._amc=self._const['amc']
+        self._user_agent = self._const['user_agent']
+        self._scheme_codes=self.get_scheme_codes().keys()
 
     def init_const(self):
         with open(self._filepath, 'r') as f:
@@ -84,8 +84,9 @@ class Mftool():
         :return: Boolean
         """
         if code:
-            scheme_codes = self.get_scheme_codes()
-            if code in scheme_codes.keys():
+            # scheme_codes = self.get_scheme_codes()
+            # if code in scheme_codes.keys():
+            if code in self._scheme_codes:
                 return True
             else:
                 return False
@@ -267,7 +268,7 @@ class Mftool():
             url = performance_url + '&nav-date=' + self.get_friday()
         else:
             url = performance_url + '&nav-date=' + self.get_today()
-        html = requests.get(url)
+        html = requests.get(url,headers=self._user_agent)
         soup = BeautifulSoup(html.text, 'html.parser')
         rows = soup.select("table tbody tr")
         try:
@@ -313,7 +314,7 @@ class Mftool():
             amc_profiles.append(amc_details)
             amc_details = None
         return self.render_response(amc_profiles, as_json)
-
+    
     def get_mutual_fund_ranking(self, as_json):
         """
            gets the daily CRICIL Ranking of all types of Mutual funds
