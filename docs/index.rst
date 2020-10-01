@@ -321,4 +321,13 @@ Methode gives us Profile data of all AMCs
 >>> print(amc_details)
 
 
- .. disqus::
+Project
+===================
+Study Project on Forecasting Mutual Funds -
+
+https://github.com/NayakwadiS/Forecasting_Mutual_Funds
+
+
+.. disqus::
+
+
