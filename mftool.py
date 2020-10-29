@@ -236,7 +236,7 @@ class Mftool():
                 if end_date >= d.date() >= start_date:
                     data.append( dat )
             if len( data ) == 0:
-                data.append( {'Error': 'For Year ' + str( year ) + ' Data is NOT available'} )
+                data.append( {'Data is NOT available for selected range'} )
 
             scheme_info.update( data=data )
             return self.render_response( scheme_info, as_json )
