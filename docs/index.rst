@@ -88,7 +88,7 @@ Before going though other fundamental APIs. We will first see how to get a quote
 Assume that we want to fetch current nav of *SBI BLUE CHIP FUND-DIRECT PLAN*. The only thing 
 we need is AMFI Code for this company.  
 
->>> q = mf.get_scheme_quote('117865') # it's ok to use both string or integer as codes.
+>>> q = mf.get_scheme_quote('119598') # it's ok to use both string or integer as codes.
 >>> print(q)
 {"scheme_code": "119598",
  "scheme_name": "SBI xxxxxxxxxxxxx",
@@ -310,6 +310,15 @@ Methode gives us Historical Data of scheme for perticular year.
 	 	 {'date': '01-01-2014', 'nav': '11.87130'}
 	 	]
 }	  
+
+
+Get Scheme Historical NAV between Dates
+-------------------------------------------------
+
+To get Historical data of scheme between given dates.
+
+>>> value = mf.get_scheme_historical_nav_year(119596,'1-2-2015','31-3-2015')
+>>> print(value)
 
 
 All AMC profiles
