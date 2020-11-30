@@ -224,15 +224,15 @@ class Mftool():
         if self.is_valid_code( code ):
             scheme_info = {}
             data = []
-            start_date = datetime.strptime( start_date, '%Y-%m-%d' ).date()
-            end_date = datetime.strptime( end_date, '%Y-%m-%d' ).date()
+            start_date = datetime.datetime.strptime( start_date, '%d-%m-%Y' ).date()
+            end_date = datetime.datetime.strptime( end_date, '%d-%m-%Y' ).date()
             url = self._get_scheme_url + code
             response = self._session.get( url ).json()
             nav = self.get_scheme_historical_nav( code )
             scheme_info = self.get_scheme_details( code )
             for dat in nav['data']:
                 navDate = dat['date']
-                d = datetime.strptime( navDate, '%d-%m-%Y' )
+                d = datetime.datetime.strptime( navDate, '%d-%m-%Y' )
                 if end_date >= d.date() >= start_date:
                     data.append( dat )
             if len( data ) == 0:
