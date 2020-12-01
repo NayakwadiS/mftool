@@ -200,9 +200,9 @@ provide with scheme code and units balance you are having
  }
  
 
- 
 Get daily performance of equity schemes
 -------------------------------------------------
+
 To get daily Performance of open ended equity schemes for all AMCs
 
 >>> value = mf.get_open_ended_equity_scheme_performance(True)
@@ -245,44 +245,11 @@ To get daily Performance of open ended equity schemes for all AMCs
 
 Get daily performance of debt schemes
 -------------------------------------------------
+
 To get daily Performance of open ended debt schemes for all AMCs
 
 >>> value = mf.get_open_ended_debt_scheme_performance(True)
 >>> print(value)
-{
-	"Long Duration": [{
-		"scheme_name": "xxxxxxxxxxxxxxxx",
-		"benchmark": "NIFTY Long Duration Debt Total Return Index",
-		"latest NAV- Regular": "xxxxx",
-		"latest NAV- Direct": "xxxxx",
-		"1-Year Return(%)- Regular": "x.72",
-		"1-Year Return(%)- Direct": "x.48",
-		"3-Year Return(%)- Regular": "xx.22",
-		"3-Year Return(%)- Direct": "xx.22",
-		"5-Year Return(%)- Regular": "xx.33",
-		"5-Year Return(%)- Direct": "xx.33"
-	},
-	.
-	.
-	.
-	.
-	],
-	"Medium to Long Duration": [
-	{
-		"scheme_name": "xxxxxxxxxxxxxxxxxx",
-		"benchmark": "CRISIL Composite Bond Index",
-		"latest NAV- Regular": "xxxxx",
-		"latest NAV- Direct": "xxxxx",
-		"1-Year Return(%)- Regular": "xx.45",
-		"1-Year Return(%)- Direct": "xx.45",
-		"3-Year Return(%)- Regular": "xx.15",
-		"3-Year Return(%)- Direct": "xx.35",
-		"5-Year Return(%)- Regular": "xx.32",
-		"5-Year Return(%)- Direct": "x.41"
-	},
-	.
-	.
-]}
 
 
 Get Scheme Historical NAV data of particular Year
@@ -291,25 +258,7 @@ Get Scheme Historical NAV data of particular Year
 Methode gives us Historical Data of scheme for perticular year.
 
 >>> value = mf.get_scheme_historical_nav_year(119596,2014)
->>> print(value)
-{
-	'fund_house': 'Sundaram xxxxxxxxxxxxx',
-	'scheme_type': 'Open Ended Schemes',
-	'scheme_category': 'Equity Scheme - Sectoral/ Thematic',
-	'scheme_code': 119596,
-	'scheme_name': 'Sundaram xxxxxxxxxxxxx ',
-	'scheme_start_date': {'date': '02-01-2013','nav': '13.79920'},
-	'data': [{'date': '31-12-2014','nav': '16.70060'},
-		 {'date': '30-12-2014','nav': '16.62180'},
-		  .
-		  .
-		  .
-		  .
-		  .
-		  .
-	 	 {'date': '01-01-2014', 'nav': '11.87130'}
-	 	]
-}	  
+>>> print(value)	  
 
 
 Get Scheme Historical NAV between Dates
