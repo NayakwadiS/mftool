@@ -254,6 +254,9 @@ class Mftool():
         days = {'Sat': 1, 'Sun': 2, 'Mon': 3}
         diff = int(days[date.today().strftime("%a")])
         return (date.today() - timedelta(days=diff)).strftime("%d-%b-%Y")
+    
+    def get_current_year_quarter(self):
+        return (datetime.datetime.now().month - 1) // 3 + 1
 
     def get_today(self):
         return (date.today() - timedelta(days=1)).strftime("%d-%b-%Y")
@@ -348,6 +351,29 @@ class Mftool():
             amc_profiles.append(amc_details)
             amc_details = None
         return self.render_response(amc_profiles, as_json)
+    
+    def get_average_aum(self,year_quarter,as_json=True):
+    """
+       gets the Avearage AUM data for all Fund houses
+       :param year_quarter: string 'July - September 2020'
+       #quarter format should like - 'April - June 2020'
+       :return: json format
+       :raises: HTTPError, URLError
+    """
+    all_funds_aum = []
+    url = self._get_avg_aum
+    html = requests.post(url,headers=self._user_agent,data={"AUmType":'F',"Year_Quarter":year_quarter})
+    soup = BeautifulSoup(html.text, 'html.parser')
+    rows = soup.select("table tbody tr")
+    for row in rows:
+        aum_fund = {}
+        if len(row.findAll('td')) > 1:
+            aum_fund['Fund Name']= row.select("td")[1].get_text().strip()
+            aum_fund['AAUM Overseas']= row.select("td")[2].get_text().strip()
+            aum_fund['AAUM Domestic'] = row.select("td")[3].get_text().strip()
+            all_funds_aum.append(aum_fund)
+            aum_fund = None
+    return self.render_response(all_funds_aum, True)
     
     def get_mutual_fund_ranking(self, as_json):
         """
