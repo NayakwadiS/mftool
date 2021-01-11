@@ -106,6 +106,8 @@ we need is AMFI Code for this company.
     Always use AMFI codes of schemes.
 	All scheme codes are presented here -
 	https://raw.githubusercontent.com/NayakwadiS/mftool/master/Scheme_codes.txt
+	or 
+	use mf.get_scheme_codes()
 	
 
 Get Scheme Details
