@@ -248,9 +248,16 @@ To get daily Performance of open ended equity schemes for all AMCs
 Get daily performance of debt schemes
 -------------------------------------------------
 
-To get daily Performance of open ended debt schemes for all AMCs
+Get Performance of open ended debt schemes for all AMCs
 
 >>> value = mf.get_open_ended_debt_scheme_performance(True)
+>>> print(value)
+
+
+Get daily performance of Hybrid schemes
+-------------------------------------------------
+
+>>> value = mf.get_open_ended_hybrid_scheme_performance(True)
 >>> print(value)
 
 
