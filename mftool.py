@@ -17,6 +17,7 @@
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 """
+# -*- coding: UTF-8 -*-
 import os
 import requests
 import json
@@ -39,9 +40,12 @@ class Mftool():
         self._get_scheme_url = self._const['get_scheme_url']
         self._get_amc_details_url = self._const['get_amc_details_url']
         self._get_open_ended_equity_scheme_url = self._const['get_open_ended_equity_scheme_url']
+        self._get_avg_aum = self._const['get_avg_aum_url']
         self._open_ended_equity_category = self._const['open_ended_equity_category']
         self._open_ended_debt_category = self._const['open_ended_debt_category']
         self._open_ended_hybrid_category= self._const['open_ended_hybrid_category']
+        self._open_ended_solution_category = self._const['open_ended_solution_category']
+        self._open_ended_other_category = self._const['open_ended_other_category']
         self._amc=self._const['amc']
         self._user_agent = self._const['user_agent']
         self._scheme_codes=self.get_scheme_codes().keys()
@@ -212,37 +216,35 @@ class Mftool():
 
     def get_scheme_historical_nav_for_dates(self, code, start_date, end_date, as_json=False):
         """
-                gets the scheme historical data between start_date and end_date for a given scheme code
-                :param start_date: string '%Y-%m-%d'
-                :param end_date: string '%Y-%m-%d'
-                :param code: scheme code
-                :return: dict or None
-                :raises: HTTPError, URLError
-                """
-
-        code = str( code )
-        if self.is_valid_code( code ):
+            gets the scheme historical data between start_date and end_date for a given scheme code
+            :param start_date: string '%Y-%m-%d'
+            :param end_date: string '%Y-%m-%d'
+            :param code: scheme code
+            :return: dict or None
+            :raises: HTTPError, URLError
+        """
+        code = str(code)
+        if self.is_valid_code(code):
             scheme_info = {}
             data = []
-            start_date = datetime.datetime.strptime( start_date, '%d-%m-%Y' ).date()
-            end_date = datetime.datetime.strptime( end_date, '%d-%m-%Y' ).date()
+            start_date = datetime.datetime.strptime(start_date, '%d-%m-%Y').date()
+            end_date = datetime.datetime.strptime(end_date, '%d-%m-%Y').date()
             url = self._get_scheme_url + code
-            response = self._session.get( url ).json()
-            nav = self.get_scheme_historical_nav( code )
-            scheme_info = self.get_scheme_details( code )
+            response = self._session.get(url).json()
+            nav = self.get_scheme_historical_nav(code)
+            scheme_info = self.get_scheme_details(code)
             for dat in nav['data']:
                 navDate = dat['date']
-                d = datetime.datetime.strptime( navDate, '%d-%m-%Y' )
+                d = datetime.datetime.strptime(navDate, '%d-%m-%Y')
                 if end_date >= d.date() >= start_date:
-                    data.append( dat )
-            if len( data ) == 0:
-                data.append( {'Data is NOT available for selected range'} )
+                    data.append(dat)
+            if len(data) == 0:
+                data.append({'Data is NOT available for selected range'})
 
-            scheme_info.update( data=data )
-            return self.render_response( scheme_info, as_json )
+            scheme_info.update(data=data)
+            return self.render_response(scheme_info, as_json)
         else:
             return None
-
 
     def is_holiday(self):
         if date.today().strftime("%a") in ['Sat', 'Sun', 'Mon']:
@@ -254,9 +256,6 @@ class Mftool():
         days = {'Sat': 1, 'Sun': 2, 'Mon': 3}
         diff = int(days[date.today().strftime("%a")])
         return (date.today() - timedelta(days=diff)).strftime("%d-%b-%Y")
-    
-    def get_current_year_quarter(self):
-        return (datetime.datetime.now().month - 1) // 3 + 1
 
     def get_today(self):
         return (date.today() - timedelta(days=1)).strftime("%d-%b-%Y")
@@ -298,6 +297,33 @@ class Mftool():
             scheme_performance_url = get_open_ended_debt_scheme_url.replace('CAT',self._open_ended_hybrid_category[key])
             scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url, False)
         return self.render_response(scheme_performance,as_json)
+
+    def get_open_ended_solution_scheme_performance(self, as_json=False):
+        """
+        gets the daily performance of open ended Solution-Oriented schemes for all AMCs
+        :return: json format
+        :raises: HTTPError, URLError
+        """
+        get_open_ended_solution_scheme_url = self._get_open_ended_equity_scheme_url.replace('SEQ', 'SSO')
+        scheme_performance = {}
+        for key in self._open_ended_solution_category.keys():
+            scheme_performance_url = get_open_ended_solution_scheme_url.replace('CAT',
+                                                                                self._open_ended_solution_category[key])
+            scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url, False)
+        return self.render_response(scheme_performance, as_json)
+
+    def get_open_ended_other_scheme_performance(self, as_json=False):
+        """
+        gets the daily performance of open ended index and FoF schemes for all AMCs
+        :return: json format
+        :raises: HTTPError, URLError
+        """
+        get_open_ended_other_scheme_url = self._get_open_ended_equity_scheme_url.replace('SEQ', 'SOTH')
+        scheme_performance = {}
+        for key in self._open_ended_other_category.keys():
+            scheme_performance_url = get_open_ended_other_scheme_url.replace('CAT',self._open_ended_other_category[key])
+            scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url, False)
+        return self.render_response(scheme_performance, as_json)
 
     def get_daily_scheme_performance(self, performance_url,as_json):
         fund_performance = []
@@ -351,29 +377,30 @@ class Mftool():
             amc_profiles.append(amc_details)
             amc_details = None
         return self.render_response(amc_profiles, as_json)
-    
+
     def get_average_aum(self,year_quarter,as_json=True):
-    """
-       gets the Avearage AUM data for all Fund houses
-       :param year_quarter: string 'July - September 2020'
-       #quarter format should like - 'April - June 2020'
-       :return: json format
-       :raises: HTTPError, URLError
-    """
-    all_funds_aum = []
-    url = self._get_avg_aum
-    html = requests.post(url,headers=self._user_agent,data={"AUmType":'F',"Year_Quarter":year_quarter})
-    soup = BeautifulSoup(html.text, 'html.parser')
-    rows = soup.select("table tbody tr")
-    for row in rows:
-        aum_fund = {}
-        if len(row.findAll('td')) > 1:
-            aum_fund['Fund Name']= row.select("td")[1].get_text().strip()
-            aum_fund['AAUM Overseas']= row.select("td")[2].get_text().strip()
-            aum_fund['AAUM Domestic'] = row.select("td")[3].get_text().strip()
-            all_funds_aum.append(aum_fund)
-            aum_fund = None
-    return self.render_response(all_funds_aum, True)
+        """
+           gets the Avearage AUM data for all Fund houses
+           :param as_json: True / False
+           :param year_quarter: string 'July - September 2020'
+           #quarter format should like - 'April - June 2020'
+           :return: json format
+           :raises: HTTPError, URLError
+       """
+        all_funds_aum = []
+        url = self._get_avg_aum
+        html = requests.post(url,headers=self._user_agent,data={"AUmType":'F',"Year_Quarter":year_quarter})
+        soup = BeautifulSoup(html.text, 'html.parser')
+        rows = soup.select("table tbody tr")
+        for row in rows:
+            aum_fund = {}
+            if len(row.findAll('td')) > 1:
+                aum_fund['Fund Name']= row.select("td")[1].get_text().strip()
+                aum_fund['AAUM Overseas']= row.select("td")[2].get_text().strip()
+                aum_fund['AAUM Domestic'] = row.select("td")[3].get_text().strip()
+                all_funds_aum.append(aum_fund)
+                aum_fund = None
+        return self.render_response(all_funds_aum, as_json)
     
     def get_mutual_fund_ranking(self, as_json):
         """
