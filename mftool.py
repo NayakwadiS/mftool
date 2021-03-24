@@ -140,7 +140,7 @@ class Mftool():
             scheme_info['scheme_category'] = scheme_data['scheme_category']
             scheme_info['scheme_code'] = scheme_data['scheme_code']
             scheme_info['scheme_name'] = scheme_data['scheme_name']
-            scheme_info['scheme_start_date'] = response['data'][int(len(response['data']) -1)]
+            scheme_info['scheme_start_date'] = response['data'][int(len(response['data']) -1)]["date"]
             scheme_info['scheme_nav'] = response['data'][0]["nav"]
             return self.render_response(scheme_info, as_json)
         else:
