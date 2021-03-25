@@ -19,11 +19,11 @@
 """
 # -*- coding: UTF-8 -*-
 import os
+from utils import get_friday, get_today, is_holiday, render_response
 import requests
 import json
 from bs4 import BeautifulSoup
 import datetime
-from datetime import date,timedelta
 
 class Mftool():
     """
@@ -46,9 +46,9 @@ class Mftool():
         self._open_ended_hybrid_category= self._const['open_ended_hybrid_category']
         self._open_ended_solution_category = self._const['open_ended_solution_category']
         self._open_ended_other_category = self._const['open_ended_other_category']
-        self._amc=self._const['amc']
+        self._amc = self._const['amc']
         self._user_agent = self._const['user_agent']
-        self._scheme_codes=self.get_scheme_codes().keys()
+        self._scheme_info = self.__initialize_scheme_info()
 
     def init_const(self):
         with open(self._filepath, 'r') as f:
@@ -63,13 +63,8 @@ class Mftool():
         :return: None
         """
         self._session.proxies = proxy
-
-    def get_scheme_codes(self, as_json=False):
-        """
-        returns a dictionary with key as scheme code and value as scheme name.
-        cache handled internally
-        :return: dict / json
-        """
+    
+    def __initialize_scheme_info(self):
         scheme_info = {}
         url = self._get_quote_url
         response = self._session.get(url)
@@ -77,9 +72,22 @@ class Mftool():
         for scheme_data in data:
             if ";INF" in scheme_data:
                scheme = scheme_data.split(";")
-               scheme_info[scheme[0]] = scheme[3]
+               scheme_info[scheme[0]] = {
+                   'scheme_code': scheme[0], 
+                   'scheme_name': scheme[3],
+                   'last_updated': scheme[5].replace("\r", ""),
+                   'nav': scheme[4],
+               }
 
-        return self.render_response(scheme_info, as_json)
+        return scheme_info
+
+    def get_scheme_codes(self, as_json=False):
+        """
+        returns a dictionary with key as scheme code and value as object with scheme name, nav and last updated date.
+        cache handled internally
+        :return: dict / json
+        """
+        return render_response(self._scheme_info, as_json)
 
     def is_valid_code(self, code):
         """
@@ -90,7 +98,7 @@ class Mftool():
         if code:
             # scheme_codes = self.get_scheme_codes()
             # if code in scheme_codes.keys():
-            if code in self._scheme_codes:
+            if code in self._scheme_info:
                 return True
             else:
                 return False
@@ -105,22 +113,11 @@ class Mftool():
         :raises: HTTPError, URLError
         """
         code = str(code)
-        if self.is_valid_code(code):
-            scheme_info = {}
-            url = self._get_quote_url
-            response = self._session.get(url)
-            data = response.text.split("\n")
-            for scheme_data in data:
-                if code in scheme_data:
-                    scheme = scheme_data.split(";")
-                    scheme_info['scheme_code'] = scheme[0]
-                    scheme_info['scheme_name'] = scheme[3]
-                    scheme_info['last_updated'] = scheme[5].replace("\r", "")
-                    scheme_info['nav'] = scheme[4]
-                    break
-            return self.render_response(scheme_info, as_json)
-        else:
-            return None
+        data = self._scheme_info.get(code, None)
+        if data:
+            return render_response(data, as_json)
+        
+        return None
 
     def get_scheme_details(self, code, as_json=False):
         """
@@ -142,7 +139,7 @@ class Mftool():
             scheme_info['scheme_name'] = scheme_data['scheme_name']
             scheme_info['scheme_start_date'] = response['data'][int(len(response['data']) -1)]["date"]
             scheme_info['scheme_nav'] = response['data'][0]["nav"]
-            return self.render_response(scheme_info, as_json)
+            return render_response(scheme_info, as_json)
         else:
             return None
 
@@ -160,7 +157,7 @@ class Mftool():
             response = self._session.get(url).json()
             scheme_info = self.get_scheme_details(code)
             scheme_info.update(data= response['data'])
-            return self.render_response(scheme_info, as_json)
+            return render_response(scheme_info, as_json)
         else:
             return None
 
@@ -176,15 +173,9 @@ class Mftool():
                 scheme_info = self.get_scheme_quote(code)
                 market_value = float(balance_units)*float(scheme_info['nav'])
                 scheme_info.update(balance_units_value= "{0:.2f}".format(market_value))
-                return self.render_response(scheme_info, as_json)
+                return render_response(scheme_info, as_json)
             else:
                 return None
-
-    def render_response(self, data, as_json=False):
-            if as_json is True:
-                return json.dumps(data)
-            else:
-                return data
 
     def get_scheme_historical_nav_year(self, code, year, as_json=False):
         """
@@ -198,8 +189,6 @@ class Mftool():
         if self.is_valid_code(code):
             scheme_info = {}
             data = []
-            url = self._get_scheme_url + code
-            response = self._session.get(url).json()
             nav = self.get_scheme_historical_nav(code)
             scheme_info = self.get_scheme_details(code)
             for dat in nav['data']:
@@ -211,7 +200,7 @@ class Mftool():
                 data.append({'Error': 'For Year '+str(year)+' Data is NOT available'})
 
             scheme_info.update(data=data)
-            return self.render_response(scheme_info, as_json)
+            return render_response(scheme_info, as_json)
         else:
             return None
 
@@ -230,8 +219,6 @@ class Mftool():
             data = []
             start_date = datetime.datetime.strptime(start_date, '%d-%m-%Y').date()
             end_date = datetime.datetime.strptime(end_date, '%d-%m-%Y').date()
-            url = self._get_scheme_url + code
-            response = self._session.get(url).json()
             nav = self.get_scheme_historical_nav(code)
             scheme_info = self.get_scheme_details(code)
             for dat in nav['data']:
@@ -243,23 +230,9 @@ class Mftool():
                 data.append({'Data is NOT available for selected range'})
 
             scheme_info.update(data=data)
-            return self.render_response(scheme_info, as_json)
+            return render_response(scheme_info, as_json)
         else:
             return None
-
-    def is_holiday(self):
-        if date.today().strftime("%a") in ['Sat', 'Sun', 'Mon']:
-            return True
-        else:
-            return False
-
-    def get_friday(self):
-        days = {'Sat': 1, 'Sun': 2, 'Mon': 3}
-        diff = int(days[date.today().strftime("%a")])
-        return (date.today() - timedelta(days=diff)).strftime("%d-%b-%Y")
-
-    def get_today(self):
-        return (date.today() - timedelta(days=1)).strftime("%d-%b-%Y")
 
     def get_open_ended_equity_scheme_performance(self, as_json=False):
         """
@@ -271,7 +244,7 @@ class Mftool():
         for key in self._open_ended_equity_category.keys():
             scheme_performance_url = self._get_open_ended_equity_scheme_url.replace('CAT',self._open_ended_equity_category[key])
             scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url, False)
-        return self.render_response(scheme_performance,as_json)
+        return render_response(scheme_performance,as_json)
 
     def get_open_ended_debt_scheme_performance(self, as_json=False):
         """
@@ -284,7 +257,7 @@ class Mftool():
         for key in self._open_ended_debt_category.keys():
             scheme_performance_url = get_open_ended_debt_scheme_url.replace('CAT',self._open_ended_debt_category[key])
             scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url, False)
-        return self.render_response(scheme_performance,as_json)
+        return render_response(scheme_performance,as_json)
 
     def get_open_ended_hybrid_scheme_performance(self, as_json=False):
         """
@@ -297,7 +270,7 @@ class Mftool():
         for key in self._open_ended_hybrid_category.keys():
             scheme_performance_url = get_open_ended_debt_scheme_url.replace('CAT',self._open_ended_hybrid_category[key])
             scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url, False)
-        return self.render_response(scheme_performance,as_json)
+        return render_response(scheme_performance,as_json)
 
     def get_open_ended_solution_scheme_performance(self, as_json=False):
         """
@@ -311,7 +284,7 @@ class Mftool():
             scheme_performance_url = get_open_ended_solution_scheme_url.replace('CAT',
                                                                                 self._open_ended_solution_category[key])
             scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url, False)
-        return self.render_response(scheme_performance, as_json)
+        return render_response(scheme_performance, as_json)
 
     def get_open_ended_other_scheme_performance(self, as_json=False):
         """
@@ -324,21 +297,20 @@ class Mftool():
         for key in self._open_ended_other_category.keys():
             scheme_performance_url = get_open_ended_other_scheme_url.replace('CAT',self._open_ended_other_category[key])
             scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url, False)
-        return self.render_response(scheme_performance, as_json)
+        return render_response(scheme_performance, as_json)
 
     def get_daily_scheme_performance(self, performance_url,as_json):
         fund_performance = []
-        if self.is_holiday():
-            url = performance_url + '&nav-date=' + self.get_friday()
+        if is_holiday():
+            url = performance_url + '&nav-date=' + get_friday()
         else:
-            url = performance_url + '&nav-date=' + self.get_today()
+            url = performance_url + '&nav-date=' + get_today()
         html = requests.get(url,headers=self._user_agent)
         soup = BeautifulSoup(html.text, 'html.parser')
         rows = soup.select("table tbody tr")
         try:
             for tr in rows:
                 scheme_details = {}
-                cols = tr.select("td.nav.text-right")
                 scheme_details['scheme_name'] = tr.select("td")[0].get_text()
                 scheme_details['benchmark'] = tr.select("td")[1].get_text()
 
@@ -360,9 +332,9 @@ class Mftool():
                 fund_performance.append(scheme_details)
 
         except Exception:
-            return self.render_response(['The underlying data is unavailable for Today'], as_json)
+            return render_response(['The underlying data is unavailable for Today'], as_json)
 
-        return self.render_response(fund_performance, as_json)
+        return render_response(fund_performance, as_json)
 
     def get_all_amc_profiles(self,as_json):
         url = self._get_amc_details_url
@@ -377,7 +349,7 @@ class Mftool():
                     amc_details[row.select("td")[0].get_text()] = row.select("td")[1].get_text().strip()
             amc_profiles.append(amc_details)
             amc_details = None
-        return self.render_response(amc_profiles, as_json)
+        return render_response(amc_profiles, as_json)
 
     def get_average_aum(self,year_quarter,as_json=True):
         """
@@ -401,7 +373,7 @@ class Mftool():
                 aum_fund['AAUM Domestic'] = row.select("td")[3].get_text().strip()
                 all_funds_aum.append(aum_fund)
                 aum_fund = None
-        return self.render_response(all_funds_aum, as_json)
+        return render_response(all_funds_aum, as_json)
     
     def get_mutual_fund_ranking(self, as_json):
         """
@@ -438,4 +410,4 @@ class Mftool():
                     scheme_info['3YearReturn'] = scheme['scheme3YearReturn']
                 scheme_category[scheme['categoryName']].append(scheme_info.copy())
                 scheme_info = None
-        return self.render_response(scheme_category, as_json)
+        return render_response(scheme_category, as_json)
