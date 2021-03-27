@@ -122,6 +122,25 @@ class Mftool():
         else:
             return None
 
+    def get_scheme_details_and_historical_nav(self, code, as_json=False):
+        """
+        gets the scheme info and historical data for a given scheme code
+        :param code: scheme code
+        :return: dict or None
+        :raises: HTTPError, URLError
+        """
+        code = str(code)
+        if self.is_valid_code(code):
+            url = self._get_scheme_url + code
+            scheme_info = self._session.get(url).json()
+            scheme_info['scheme_start_date'] = None
+            if scheme_info["data"]:
+                scheme_info['meta']['scheme_start_date'] = scheme_info['data'][int(len(scheme_info['data']) - 1)][
+                    'date']
+            return self.render_response(scheme_info, as_json)
+
+        return None
+
     def get_scheme_details(self, code, as_json=False):
         """
         gets the scheme info for a given scheme code
@@ -131,19 +150,14 @@ class Mftool():
         """
         code = str(code)
         if self.is_valid_code(code):
-            scheme_info = {}
-            url = self._get_scheme_url+code
-            response = self._session.get(url).json()
-            scheme_data = response['meta']
-            scheme_info['fund_house'] = scheme_data['fund_house']
-            scheme_info['scheme_type'] = scheme_data['scheme_type']
-            scheme_info['scheme_category'] = scheme_data['scheme_category']
-            scheme_info['scheme_code'] = scheme_data['scheme_code']
-            scheme_info['scheme_name'] = scheme_data['scheme_name']
-            scheme_info['scheme_start_date'] = response['data'][int(len(response['data']) -1)]
+            response = self.get_scheme_details_and_historical_nav(code=code)
+            scheme_info = response['meta']
+            if scheme_info == {}:
+                return None
+            scheme_info['scheme_start_date'] = None
             return self.render_response(scheme_info, as_json)
-        else:
-            return None
+
+        return None
 
     def get_scheme_historical_nav(self, code, as_json=False):
         """
@@ -154,14 +168,12 @@ class Mftool():
         """
         code = str(code)
         if self.is_valid_code(code):
-            scheme_info = {}
-            url = self._get_scheme_url + code
-            response = self._session.get(url).json()
-            scheme_info = self.get_scheme_details(code)
-            scheme_info.update(data= response['data'])
-            return self.render_response(scheme_info, as_json)
-        else:
-            return None
+            response = self.get_scheme_details_and_historical_nav(code=code)
+            nav_info = response['data']
+            if nav_info:
+                return self.render_response(nav_info, as_json)
+
+        return None
 
     def calculate_balance_units_value(self, code, balance_units, as_json=False):
             """
