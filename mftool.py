@@ -157,8 +157,19 @@ class Mftool():
             scheme_info = {}
             url = self._get_scheme_url + code
             response = self._session.get(url).json()
-            scheme_info = self.get_scheme_details(code)
-            scheme_info.update(data= response['data'])
+            #scheme_info = self.get_scheme_details(code)
+            #scheme_info.update(data= response['data'])
+            scheme_data = response['meta']
+            scheme_info['fund_house'] = scheme_data['fund_house']
+            scheme_info['scheme_type'] = scheme_data['scheme_type']
+            scheme_info['scheme_category'] = scheme_data['scheme_category']
+            scheme_info['scheme_code'] = scheme_data['scheme_code']
+            scheme_info['scheme_name'] = scheme_data['scheme_name']
+            scheme_info['scheme_start_date'] = response['data'][int(len(response['data']) -1)]
+            if response['data']:
+                scheme_info['data'] = response['data']
+            else:
+                scheme_info['data'] = "Underlying data not available"
             return self.render_response(scheme_info, as_json)
         else:
             return None
