@@ -186,6 +186,25 @@ Methode gives us All Historical Data of scheme.
     Output has been truncated for better legibility. This is a json with more than thousand 
     entries.
 
+
+Get Scheme Historical NAV data of particular Year
+-------------------------------------------------
+
+Methode gives us Historical Data of scheme for perticular year.
+
+>>> value = mf.get_scheme_historical_nav_year(119596,2014)
+>>> print(value)	  
+
+
+Get Scheme Historical NAV between Dates
+-------------------------------------------------
+
+To get Historical data of scheme between given dates.
+
+>>> value = mf.get_scheme_historical_nav_for_dates(119596,'1-2-2015','31-3-2015')
+>>> print(value)
+
+
 Calculate Market value of Units
 -------------------------------
 
@@ -202,7 +221,7 @@ provide with scheme code and units balance you are having
  }
  
 
-Get daily performance of equity schemes
+Get daily performance of Equity schemes
 -------------------------------------------------
 
 To get daily Performance of open ended equity schemes for all AMCs
@@ -245,7 +264,7 @@ To get daily Performance of open ended equity schemes for all AMCs
 ]}
 
 
-Get daily performance of debt schemes
+Get daily performance of Debt schemes
 -------------------------------------------------
 
 Get Performance of open ended debt schemes for all AMCs
@@ -261,21 +280,10 @@ Get daily performance of Hybrid schemes
 >>> print(value)
 
 
-Get Scheme Historical NAV data of particular Year
+Get daily performance of Solution schemes
 -------------------------------------------------
 
-Methode gives us Historical Data of scheme for perticular year.
-
->>> value = mf.get_scheme_historical_nav_year(119596,2014)
->>> print(value)	  
-
-
-Get Scheme Historical NAV between Dates
--------------------------------------------------
-
-To get Historical data of scheme between given dates.
-
->>> value = mf.get_scheme_historical_nav_for_dates(119596,'1-2-2015','31-3-2015')
+>>> value = mf.get_open_ended_solution_scheme_performance(True)
 >>> print(value)
 
 
