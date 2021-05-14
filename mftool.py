@@ -88,6 +88,7 @@ class Mftool():
         :return: Boolean
         """
         if code:
+            # Performance improvement
             # scheme_codes = self.get_scheme_codes()
             # if code in scheme_codes.keys():
             if code in self._scheme_codes:
@@ -157,6 +158,7 @@ class Mftool():
             scheme_info = {}
             url = self._get_scheme_url + code
             response = self._session.get(url).json()
+            # Remove recursive calling 
             #scheme_info = self.get_scheme_details(code)
             #scheme_info.update(data= response['data'])
             scheme_data = response['meta']
