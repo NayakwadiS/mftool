@@ -52,7 +52,7 @@ exception.
     in case there is no internet connectivity. Hence please handle this scenario in your code.
 
 	
-API Walkthrough with Examples
+Library Walkthrough with Examples
 =============================
 
 In this section we will focus on the basic usage and cover all the APIs which mftool offer.
