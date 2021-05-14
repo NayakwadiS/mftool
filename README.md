@@ -3,7 +3,7 @@
 Python library for getting realtime Mutual Funds data in India
 
 ![Python](https://img.shields.io/badge/python-v3.7+-blue.svg)
-[![Pypi](https://img.shields.io/badge/pypi-2.0-green)](https://pypi.python.org/pypi/mftool)
+[![Pypi](https://img.shields.io/badge/pypi-2.1-green)](https://pypi.python.org/pypi/mftool)
 ![Dependencies](https://img.shields.io/badge/dependencies-up%20to%20date-brightgreen.svg)
 ![License](https://img.shields.io/pypi/l/selenium-wire.svg)
 
