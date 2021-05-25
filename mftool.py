@@ -20,6 +20,7 @@
 # -*- coding: UTF-8 -*-
 import os
 import requests
+import httpx
 import json
 from bs4 import BeautifulSoup
 import datetime
@@ -344,7 +345,8 @@ class Mftool():
             url = performance_url + '&nav-date=' + self.get_friday()
         else:
             url = performance_url + '&nav-date=' + self.get_today()
-        html = requests.get(url,headers=self._user_agent)
+        #html = requests.get(url,headers=self._user_agent)
+        html = httpx.get(url,headers=self._user_agent)
         soup = BeautifulSoup(html.text, 'html.parser')
         rows = soup.select("table tbody tr")
         try:
