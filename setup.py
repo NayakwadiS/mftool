@@ -13,7 +13,7 @@ setup(
     description="Library for extracting real time Mutual funds data in India",
     license="MIT",
     keywords="amfi, quote, mutual-funds, funds, bse, nse, market, stock, stocks",
-    install_requires=['requests','bs4'],
+    install_requires=['requests','bs4','httpx'],
     url="https://github.com/NayakwadiS/mftool",
     packages=find_packages(),
 	long_description = long_description,
