@@ -23,7 +23,6 @@ Features
 * Getting list of all schemes with there Scheme codes.
 * Get daily scheme performance.
 * Cent percent unittest coverage.
-* There are no external dependencies.
 
 Documentation
 ====================================

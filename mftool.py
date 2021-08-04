@@ -90,14 +90,29 @@ class Mftool():
         """
         if code:
             # Performance improvement
-            # scheme_codes = self.get_scheme_codes()
-            # if code in scheme_codes.keys():
-            if code in self._scheme_codes:
-                return True
-            else:
-                return False
+            return True if code in self._scheme_codes else False
         else:
             return False
+
+    def is_holiday(self):
+        if date.today().strftime("%a") in ['Sat', 'Sun', 'Mon']:
+            return True
+        else:
+            return False
+
+    def get_friday(self):
+        days = {'Sat': 1, 'Sun': 2, 'Mon': 3}
+        diff = int(days[date.today().strftime("%a")])
+        return (date.today() - timedelta(days=diff)).strftime("%d-%b-%Y")
+
+    def get_today(self):
+        return (date.today() - timedelta(days=1)).strftime("%d-%b-%Y")
+
+    def render_response(self, data, as_json=False):
+            if as_json is True:
+                return json.dumps(data)
+            else:
+                return data
 
     def get_scheme_quote(self, code, as_json=False):
         """
@@ -193,12 +208,6 @@ class Mftool():
             else:
                 return None
 
-    def render_response(self, data, as_json=False):
-            if as_json is True:
-                return json.dumps(data)
-            else:
-                return data
-
     def get_scheme_historical_nav_year(self, code, year, as_json=False):
         """
         gets the scheme historical data of given year for a given scheme code
@@ -260,20 +269,6 @@ class Mftool():
         else:
             return None
 
-    def is_holiday(self):
-        if date.today().strftime("%a") in ['Sat', 'Sun', 'Mon']:
-            return True
-        else:
-            return False
-
-    def get_friday(self):
-        days = {'Sat': 1, 'Sun': 2, 'Mon': 3}
-        diff = int(days[date.today().strftime("%a")])
-        return (date.today() - timedelta(days=diff)).strftime("%d-%b-%Y")
-
-    def get_today(self):
-        return (date.today() - timedelta(days=1)).strftime("%d-%b-%Y")
-
     def get_open_ended_equity_scheme_performance(self, as_json=False):
         """
         gets the daily performance of open ended equity schemes for all AMCs
@@ -283,7 +278,7 @@ class Mftool():
         scheme_performance = {}
         for key in self._open_ended_equity_category.keys():
             scheme_performance_url = self._get_open_ended_equity_scheme_url.replace('CAT',self._open_ended_equity_category[key])
-            scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url, False)
+            scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url)
         return self.render_response(scheme_performance,as_json)
 
     def get_open_ended_debt_scheme_performance(self, as_json=False):
@@ -296,7 +291,7 @@ class Mftool():
         scheme_performance = {}
         for key in self._open_ended_debt_category.keys():
             scheme_performance_url = get_open_ended_debt_scheme_url.replace('CAT',self._open_ended_debt_category[key])
-            scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url, False)
+            scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url)
         return self.render_response(scheme_performance,as_json)
 
     def get_open_ended_hybrid_scheme_performance(self, as_json=False):
@@ -309,7 +304,7 @@ class Mftool():
         scheme_performance = {}
         for key in self._open_ended_hybrid_category.keys():
             scheme_performance_url = get_open_ended_debt_scheme_url.replace('CAT',self._open_ended_hybrid_category[key])
-            scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url, False)
+            scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url)
         return self.render_response(scheme_performance,as_json)
 
     def get_open_ended_solution_scheme_performance(self, as_json=False):
@@ -323,7 +318,7 @@ class Mftool():
         for key in self._open_ended_solution_category.keys():
             scheme_performance_url = get_open_ended_solution_scheme_url.replace('CAT',
                                                                                 self._open_ended_solution_category[key])
-            scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url, False)
+            scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url)
         return self.render_response(scheme_performance, as_json)
 
     def get_open_ended_other_scheme_performance(self, as_json=False):
@@ -336,17 +331,17 @@ class Mftool():
         scheme_performance = {}
         for key in self._open_ended_other_category.keys():
             scheme_performance_url = get_open_ended_other_scheme_url.replace('CAT',self._open_ended_other_category[key])
-            scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url, False)
+            scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url)
         return self.render_response(scheme_performance, as_json)
 
-    def get_daily_scheme_performance(self, performance_url,as_json):
+    def get_daily_scheme_performance(self, performance_url,as_json=False):
         fund_performance = []
         if self.is_holiday():
             url = performance_url + '&nav-date=' + self.get_friday()
         else:
             url = performance_url + '&nav-date=' + self.get_today()
         #html = requests.get(url,headers=self._user_agent)
-        html = httpx.get(url,headers=self._user_agent)
+        html = httpx.get(url,headers=self._user_agent,timeout=15)
         soup = BeautifulSoup(html.text, 'html.parser')
         rows = soup.select("table tbody tr")
         try:
@@ -416,40 +411,3 @@ class Mftool():
                 all_funds_aum.append(aum_fund)
                 aum_fund = None
         return self.render_response(all_funds_aum, as_json)
-    
-    def get_mutual_fund_ranking(self, as_json):
-        """
-           gets the daily CRICIL Ranking of all types of Mutual funds
-           :return: json / dict format
-           :raises: HTTPError, URLError
-       """
-        response = self._session.get(url=self._get_fund_ranking, headers=self._user_agent).json()
-        schemes_data = response['docs']
-        scheme_category = {'ELSS': [], 'Focused Fund': [], 'Mid Cap Fund': ['None'], 'Large Cap Fund': [],
-                           'Small Cap Fund': [],
-                           'Large and Mid Cap Fund': [], 'Index Funds/ETFs': [], 'Multi Cap Fund': [],
-                           'Banking and PSU Fund': [],
-                           'Dynamic Bond Fund': [], 'Gilt Fund': [], 'Money Market Fund': [], 'Value/Contra Fund': [],
-                           'Low Duration Fund': [], 'Medium Duration Fund': [], 'Medium to Long Duration Fund': [],
-                           'Conservative Hybrid Fund': [], 'Credit Risk Fund': [], 'Ultra Short Duration Fund': [],
-                           'Short Duration Fund': [], 'Liquid Fund': [], 'Arbitrage Fund': []
-                           }
-
-        for scheme in schemes_data:
-            scheme_info = {}
-            if scheme['categoryName'] in scheme_category:
-                scheme_info['crisilRanking'] = scheme['crisilCprRanking']
-                scheme_info['category'] = scheme['categoryName']
-                scheme_info['type'] = scheme['invtype']
-                scheme_info['fund'] = scheme['fundName']
-                scheme_info['scheme'] = scheme['schemeName']
-                scheme_info['planName'] = scheme['planName']
-                scheme_info['3MonthReturn'] = scheme['scheme3MonthReturn']
-                scheme_info['6MonthReturn'] = scheme['scheme6MonthReturn']
-                scheme_info['1YearReturn'] = scheme['scheme1YearReturn']
-                if scheme['categoryName'] not in ['Short Duration Fund', 'Liquid Fund', 'Corporate Bond Fund',
-                                                  'Arbitrage Fund', 'Ultra Short Duration Fund', 'Credit Risk Fund']:
-                    scheme_info['3YearReturn'] = scheme['scheme3YearReturn']
-                scheme_category[scheme['categoryName']].append(scheme_info.copy())
-                scheme_info = None
-        return self.render_response(scheme_category, as_json)
