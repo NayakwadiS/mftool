@@ -16,8 +16,8 @@ Features
 =============
 
 * Getting last updated quotes for Mutual fund scheme using scheme codes.
-* Return data in both json and python dictionary formats.
-* Getting quotes for all the schemes available with AMFI, e.g Axis, DSP, SBI mutual funds
+* Return data in both json and dictionary formats.
+* Getting quotes for all the schemes available with AMFI.
 * Helper APIs to check whether a given Scheme code is correct.
 * Getting all historical NAVs for a schemes.
 * Getting list of all schemes with there Scheme codes.
