@@ -429,18 +429,6 @@ class Mftool:
         """
         code = str(code)
         if self.is_valid_code(code):
-            days = 1
-            end_date = (date.today() - timedelta(days=days)).strftime('%d-%m-%Y')
-            days += 1
-            start_date = (date.today() - timedelta(days=days)).strftime('%d-%m-%Y')
-            print(start_date, end_date)
-            data = self.get_scheme_historical_nav_for_dates(code=code, start_date=start_date,
-                                                            end_date=end_date, as_json=as_json).get('data')
-            while len(data) < 3:  # repeat until we have two data points
-                days += 1
-                start_date = (date.today() - timedelta(days=days)).strftime('%d-%m-%Y')
-                data = self.get_scheme_historical_nav_for_dates(code=code, start_date=start_date,
-                                                                end_date=end_date, as_json=as_json).get('data')
-
+            data = self.get_scheme_historical_nav(code).get('data')
             nav_diff = round(float(data[0].get('nav')) - float(data[1].get('nav')), 4)
             return nav_diff
