@@ -231,7 +231,7 @@ class Mftool():
 
             scheme_info.update(final_investment_value="{0:.2f}".format(market_value))
             scheme_info.update(absolute_return="%.2f %%" %(absolute_return))
-            scheme_info.update(XIRR_annualised_return="%.2f %%" %(annualised_return))
+            scheme_info.update(IRR_annualised_return="%.2f %%" %(annualised_return))
             return self.render_response(scheme_info, as_json)
         else:
             return None
