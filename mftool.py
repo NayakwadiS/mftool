@@ -207,7 +207,35 @@ class Mftool():
                 return self.render_response(scheme_info, as_json)
             else:
                 return None
+            
+    def calculate_returns(self, code, balanced_units, monthly_sip, investment_in_months, as_json=False):
+        """
+           gets the market value of your balance units for a given scheme code
+           :param code: scheme code,
+                    balance_units : current balance units
+                    monthly_sip: monthly investment in scheme,
+                    investment_in_months: months
+           :return: dict or None
+           :example: calculate_returns(119062,1718.925, 2000, 51)
+        """
+        code = str(code)
+        if self.is_valid_code(code):
+            scheme_info = {}
+            scheme_info = self.get_scheme_quote(code)
+            initial_investment = int(investment_in_months) * float(monthly_sip)
+            years = investment_in_months / 12
+            market_value = float(float(balanced_units) * float(scheme_info['nav']))
+            total_return = market_value - initial_investment
+            absolute_return = ((market_value - initial_investment)/ (initial_investment)) * 100
+            annualised_return = ((market_value / initial_investment) ** (1/years) - 1)*100
 
+            scheme_info.update(final_investment_value="{0:.2f}".format(market_value))
+            scheme_info.update(absolute_return="%.2f %%" %(absolute_return))
+            scheme_info.update(IRR_annualised_return="%.2f %%" %(annualised_return))
+            return self.render_response(scheme_info, as_json)
+        else:
+            return None
+            
     def get_scheme_historical_nav_year(self, code, year, as_json=False):
         """
         gets the scheme historical data of given year for a given scheme code
