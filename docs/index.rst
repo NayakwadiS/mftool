@@ -296,11 +296,13 @@ Methode gives us Profile data of all AMCs
 >>> print(amc_details)
 
 
-Project
+Related Projects
 ===================
-Study Project on Forecasting Mutual Funds -
-
-https://github.com/NayakwadiS/Forecasting_Mutual_Funds
+1. Forecasting Mutual Funds -
+	https://github.com/NayakwadiS/Forecasting_Mutual_Funds
+	
+2. Predict Cryptocurrency in Indian Rupee-
+	https://github.com/NayakwadiS/Predict_Cryptocurrency_INR
 
 
 .. disqus::
