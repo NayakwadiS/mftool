@@ -16,7 +16,7 @@ Main Features
 =============
 
 * Getting last updated quotes for Mutual Fund scheme using scheme codes.
-* Return data in both json and python dict formats.
+* Return data in Dataframe, json and dictionary formats.
 * Getting quotes for all the Schemes available in AMFI, e.g Axis, DSP, SBI mutual funds
 * Helper APIs to check whether a given Scheme code is correct.
 * Getting all Historical nav's for a scheme using scheme code.
@@ -70,8 +70,6 @@ further customize it.
 Instantiation
 --------------
 
-mftool uses amfiindia as a data source. 
-
 As mentioned earlier, mftool comes pre-built with all the right url mappings and hence 
 instantiating it requires no contructor arguments.
 
@@ -85,13 +83,13 @@ Getting a Scheme Quote
 ----------------------
 
 Before going though other fundamental APIs. We will first see how to get a quote.
-Assume that we want to fetch current nav of *SBI BLUE CHIP FUND-DIRECT PLAN*. The only thing 
-we need is AMFI Code for this company.  
+Assume that we want to fetch current nav of ANY scheme. The only thing 
+we need is Code for this company.  
 
->>> q = mf.get_scheme_quote('119598') # it's ok to use both string or integer as codes.
+>>> q = mf.get_scheme_quote('119597') # it's ok to use both string or integer as codes.
 >>> print(q)
-{"scheme_code": "119598",
- "scheme_name": "SBI xxxxxxxxxxxxx",
+{"scheme_code": "119597",
+ "scheme_name": "xxxxxxxxxxxxx",
  "last_updated": "16-Aug-2019",
  "nav": "40.0138"
 }
@@ -113,14 +111,12 @@ we need is AMFI Code for this company.
 Get Scheme Details
 -------------------
 
-gets the scheme info for a given scheme code 
-
 >>> mf.get_scheme_details("117865")
-{'fund_house': 'UTI xxxxxxxxxxxxx',
+{'fund_house': 'xxxxxxxxxxxxx',
  'scheme_type': 'IL&FS Mutual Fund',
  'scheme_category': 'IDF',
  'scheme_code': 117865,
- 'scheme_name': 'UTI-xxxxxxxxxxxxx - Growth Option',
+ 'scheme_name': 'xxxxxxxxxxxxx - Growth Option',
  'scheme_start_date': {'date': '10-09-2012', 'nav': '10.01030'}
 }
 
@@ -159,7 +155,7 @@ Get Scheme Historical NAV's data
 
 1. Get data as Dataframe
 
->>> data = mf.get_scheme_historical_nav("119598",as_Dataframe=True)
+>>> data = mf.get_scheme_historical_nav("119597",as_Dataframe=True)
 >>> print(data)
                  nav
 date                
@@ -172,12 +168,12 @@ date
 
 2. Get data as JSON
 
->>> data = mf.get_scheme_historical_nav("119598",as_json=True)
+>>> data = mf.get_scheme_historical_nav("119597",as_json=True)
 >>> print(data)
-{'fund_house': 'Aditya xxxxxxxxxxxxx',
+{'fund_house': 'xxxxxxxxxxxxx',
  'scheme_type': 'Open Ended Schemes',
  'scheme_category': 'Debt Scheme - Banking and PSU Fund',
- 'scheme_code': 119551, 'scheme_name': 'Aditya xxxxxxxxxxxxx  - Direct Plan-Dividend',
+ 'scheme_code': 119597, 'scheme_name': 'xxxxxxxxxxxxx  - Direct Plan-Dividend',
  'scheme_start_date': {'date': '02-01-2013', 'nav': '103.00590'},
  'data': [{'date': '16-08-2019', 'nav': '149.33110'}, 
 		  {'date': '14-08-2019', 'nav': '149.08090'}, 
@@ -195,34 +191,16 @@ date
     entries.
 
 
-Get Scheme Historical NAV data of particular Year
--------------------------------------------------
-
-Methode gives us Historical Data of scheme for perticular year.
-
->>> value = mf.get_scheme_historical_nav_year(119596,2014)
->>> print(value)	  
-
-
-Get Scheme Historical NAV between Dates
--------------------------------------------------
-
-To get Historical data of scheme between given dates.
-
->>> value = mf.get_scheme_historical_nav_for_dates(119596,'1-2-2015','31-3-2015')
->>> print(value)
-
-
 Calculate Market value of Units
 -------------------------------
 
 This calculates the Today's Market value of units you are having.
 provide with scheme code and units balance you are having
 
->>> value = mf.calculate_balance_units_value(119598, 445.804)
+>>> value = mf.calculate_balance_units_value(119597, 445.804)
 >>> print(value)
-{'scheme_code': '119598',
- 'scheme_name': 'SBI xxxxxxxxxxxxx',
+{'scheme_code': '119597',
+ 'scheme_name': 'xxxxxxxxxxxxx',
  'last_updated': '14-Aug-2019',
  'nav': '40.0138',
  'balance_units_value': '17838.31'
@@ -272,10 +250,8 @@ To get daily Performance of open ended equity schemes for all AMCs
 ]}
 
 
-Get daily performance of Debt schemes
+Get daily performance of open ended Debt schemes
 -------------------------------------------------
-
-Get Performance of open ended debt schemes for all AMCs
 
 >>> value = mf.get_open_ended_debt_scheme_performance(True)
 >>> print(value)
