@@ -28,5 +28,8 @@ Documentation
 ====================================
 http://mftool.readthedocs.io
 
-Forecasting of Mutual Funds *[here](https://github.com/NayakwadiS/Forecasting_Mutual_Funds)*
+Related Projects
+===================
+1. Forecasting of Mutual Funds *[here](https://github.com/NayakwadiS/Forecasting_Mutual_Funds)*
+2. Predict Cryptocurrency in Indian Rupees *[here](https://github.com/NayakwadiS/Predict_Cryptocurrency_INR)*
 
