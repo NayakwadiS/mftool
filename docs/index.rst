@@ -157,7 +157,20 @@ programatically as well.
 Get Scheme Historical NAV's data
 --------------------------------
 
-Methode gives us All Historical Data of scheme.
+1. Get data as Dataframe
+
+>>> data = mf.get_scheme_historical_nav("119598",as_Dataframe=True)
+>>> print(data)
+                 nav
+date                
+26-10-2021  81.08400
+25-10-2021  79.60400
+20-10-2021  82.30800
+19-10-2021  83.97800
+18-10-2021  85.41100
+...              ...
+
+2. Get data as JSON
 
 >>> data = mf.get_scheme_historical_nav("119598",as_json=True)
 >>> print(data)
@@ -173,11 +186,6 @@ Methode gives us All Historical Data of scheme.
 		  .
 		  .
 		  .
-		  .
-		  .
-		  .
-		  {'date': '03-01-2013', 'nav': '103.03060'},
-		  {'date': '02-01-2013', 'nav': '103.00590'}
 		 ]
 }
 
