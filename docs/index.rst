@@ -140,8 +140,6 @@ programatically as well.
 .
 .
 .
-.
- '117864': 'UTI-FTIF Series-XII Plan VIII (1098 Days) - Maturity Dividend Option'
 }
 
 .. note:: 
