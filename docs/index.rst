@@ -153,8 +153,8 @@ Get Scheme Historical NAV's data
 
 1. Get data as Dataframe
 
->>> data = mf.get_scheme_historical_nav("119597",as_Dataframe=True)
->>> print(data)
+>>> df = mf.get_scheme_historical_nav("119597",as_Dataframe=True)
+>>> print(df)
                  nav
 date                
 26-10-2021  81.08400
@@ -183,11 +183,24 @@ date
 		 ]
 }
 
+3. Alternative, view historical data with one day change 
+
+>>> df = mf.history('0P0000XVAA',start=None,end=None,period='3mo',as_dataframe=True)
+>>> print(df)
+		nav  	dayChange
+date                            
+03-08-2021  78.269997        NaN
+04-08-2021  77.545998  -0.723999
+05-08-2021  77.081001  -0.464996
+06-08-2021  77.349998   0.268997
+.
+.
+
 .. note:: 
 
-    Output has been truncated for better legibility. This is a json with more than thousand 
-    entries.
-
+    To use mf.history(), we have to use new scheme codes presented here-
+    https://github.com/NayakwadiS/Forecasting_Mutual_Funds/blob/master/codes.json
+    
 
 Calculate Market value of Units
 -------------------------------
