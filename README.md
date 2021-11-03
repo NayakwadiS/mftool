@@ -3,7 +3,7 @@
 Python library for getting realtime Mutual Funds data in India
 
 ![Python](https://img.shields.io/badge/python-v3.7+-blue.svg)
-[![Pypi](https://img.shields.io/badge/pypi-v2.2-green)](https://pypi.python.org/pypi/mftool)
+[![Pypi](https://img.shields.io/badge/pypi-v2.3-green)](https://pypi.python.org/pypi/mftool)
 ![Dependencies](https://img.shields.io/badge/dependencies-up%20to%20date-brightgreen.svg)
 ![License](https://img.shields.io/pypi/l/selenium-wire.svg)
 
@@ -16,13 +16,12 @@ Features
 =============
 
 * Getting last updated quotes for Mutual fund scheme using scheme codes.
-* Return data in both json and dictionary formats.
+* Return data in Dataframe, json and dictionary formats.
 * Getting quotes for all the schemes available with AMFI.
 * Helper APIs to check whether a given Scheme code is correct.
 * Getting all historical NAVs for a schemes.
 * Getting list of all schemes with there Scheme codes.
 * Get daily scheme performance.
-* Cent percent unittest coverage.
 
 Documentation
 ====================================
