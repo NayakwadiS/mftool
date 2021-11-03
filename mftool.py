@@ -23,18 +23,21 @@ import requests
 import httpx
 import json
 from bs4 import BeautifulSoup
+import pandas as pd
+import yfinance as yf
 import datetime
 from datetime import date,timedelta
+from deprecated import deprecated
+
 
 class Mftool():
     """
     class which implements all the functionality for
     Mutual Funds in India
     """
-
     def __init__(self):
         self._session = requests.session()
-        self._filepath = str(os.path.dirname(os.path.abspath(__file__)))+'/const.json'
+        self._filepath = str(os.path.dirname(os.path.abspath(__file__))) + '/const.json'
         self._const = self.init_const()
         # URL list
         self._get_quote_url = self._const['get_quote_url']
@@ -44,18 +47,20 @@ class Mftool():
         self._get_avg_aum = self._const['get_avg_aum_url']
         self._open_ended_equity_category = self._const['open_ended_equity_category']
         self._open_ended_debt_category = self._const['open_ended_debt_category']
-        self._open_ended_hybrid_category= self._const['open_ended_hybrid_category']
+        self._open_ended_hybrid_category = self._const['open_ended_hybrid_category']
         self._open_ended_solution_category = self._const['open_ended_solution_category']
         self._open_ended_other_category = self._const['open_ended_other_category']
         self._amc=self._const['amc']
         self._user_agent = self._const['user_agent']
+        self._codes = self._const['codes']
         self._scheme_codes=self.get_scheme_codes().keys()
+
 
     def init_const(self):
         with open(self._filepath, 'r') as f:
             return json.load(f)
 
-    def set_proxy(self,proxy):
+    def set_proxy(self, proxy):
         """
         This is optional method to work with proxy server before getting any data.
         :param proxy: provide dictionary for proxies setup as
@@ -77,9 +82,8 @@ class Mftool():
         data = response.text.split("\n")
         for scheme_data in data:
             if ";INF" in scheme_data:
-               scheme = scheme_data.split(";")
-               scheme_info[scheme[0]] = scheme[3]
-
+                scheme = scheme_data.split(";")
+                scheme_info[scheme[0]] = scheme[3]
         return self.render_response(scheme_info, as_json)
 
     def is_valid_code(self, code):
@@ -91,6 +95,17 @@ class Mftool():
         if code:
             # Performance improvement
             return True if code in self._scheme_codes else False
+        else:
+            return False
+
+    def is_code(self, code):
+        """
+        check whether a New scheme code is correct or NOT, only used with mf.history()
+        :param code: a string scheme code
+        :return: Boolean
+        """
+        if code:
+            return any(code in cd for cd in self._codes)
         else:
             return False
 
@@ -108,11 +123,17 @@ class Mftool():
     def get_today(self):
         return (date.today() - timedelta(days=1)).strftime("%d-%b-%Y")
 
-    def render_response(self, data, as_json=False):
-            if as_json is True:
-                return json.dumps(data)
-            else:
-                return data
+    def render_response(self, data, as_json=False,as_Dataframe=False):
+        if as_json is True:
+            return json.dumps(data)
+        # as_Dataframe only works with get_scheme_historical_nav()
+        elif as_Dataframe is True:
+            df = pd.DataFrame.from_records(data['data'])
+            # df['DayChange'] = df['nav'].diff()
+            df = df.set_index('date')
+            return df
+        else:
+            return data
 
     def get_scheme_quote(self, code, as_json=False):
         """
@@ -149,7 +170,7 @@ class Mftool():
         code = str(code)
         if self.is_valid_code(code):
             scheme_info = {}
-            url = self._get_scheme_url+code
+            url = self._get_scheme_url + code
             response = self._session.get(url).json()
             scheme_data = response['meta']
             scheme_info['fund_house'] = scheme_data['fund_house']
@@ -162,11 +183,11 @@ class Mftool():
         else:
             return None
 
-    def get_scheme_historical_nav(self, code, as_json=False):
+    def get_scheme_historical_nav(self, code, as_json=False, as_Dataframe=False):
         """
         gets the scheme historical data till last updated for a given scheme code
         :param code: scheme code
-        :return: dict or None
+        :return: dict or json or Dataframe or None
         :raises: HTTPError, URLError
         """
         code = str(code)
@@ -174,68 +195,40 @@ class Mftool():
             scheme_info = {}
             url = self._get_scheme_url + code
             response = self._session.get(url).json()
-            # Remove recursive calling 
-            #scheme_info = self.get_scheme_details(code)
-            #scheme_info.update(data= response['data'])
+
             scheme_data = response['meta']
             scheme_info['fund_house'] = scheme_data['fund_house']
             scheme_info['scheme_type'] = scheme_data['scheme_type']
             scheme_info['scheme_category'] = scheme_data['scheme_category']
             scheme_info['scheme_code'] = scheme_data['scheme_code']
             scheme_info['scheme_name'] = scheme_data['scheme_name']
-            scheme_info['scheme_start_date'] = response['data'][int(len(response['data']) -1)]
+            scheme_info['scheme_start_date'] = response['data'][int(len(response['data']) - 1)]
             if response['data']:
                 scheme_info['data'] = response['data']
             else:
                 scheme_info['data'] = "Underlying data not available"
-            return self.render_response(scheme_info, as_json)
+            return self.render_response(scheme_info, as_json,as_Dataframe)
         else:
             return None
 
     def calculate_balance_units_value(self, code, balance_units, as_json=False):
-            """
-            gets the market value of your balance units for a given scheme code
-            :param code: scheme code, balance_units : current balance units
-            :return: dict or None
-            """
-            code = str(code)
-            if self.is_valid_code(code):
-                scheme_info = {}
-                scheme_info = self.get_scheme_quote(code)
-                market_value = float(balance_units)*float(scheme_info['nav'])
-                scheme_info.update(balance_units_value= "{0:.2f}".format(market_value))
-                return self.render_response(scheme_info, as_json)
-            else:
-                return None
-            
-    def calculate_returns(self, code, balanced_units, monthly_sip, investment_in_months, as_json=False):
         """
-           gets the market value of your balance units for a given scheme code
-           :param code: scheme code,
-                    balance_units : current balance units
-                    monthly_sip: monthly investment in scheme,
-                    investment_in_months: months
-           :return: dict or None
-           :example: calculate_returns(119062,1718.925, 2000, 51)
+        gets the market value of your balance units for a given scheme code
+        :param code: scheme code, balance_units : current balance units
+        :return: dict or None
         """
         code = str(code)
         if self.is_valid_code(code):
             scheme_info = {}
             scheme_info = self.get_scheme_quote(code)
-            initial_investment = int(investment_in_months) * float(monthly_sip)
-            years = investment_in_months / 12
-            market_value = float(float(balanced_units) * float(scheme_info['nav']))
-            total_return = market_value - initial_investment
-            absolute_return = ((market_value - initial_investment)/ (initial_investment)) * 100
-            annualised_return = ((market_value / initial_investment) ** (1/years) - 1)*100
-
-            scheme_info.update(final_investment_value="{0:.2f}".format(market_value))
-            scheme_info.update(absolute_return="%.2f %%" %(absolute_return))
-            scheme_info.update(IRR_annualised_return="%.2f %%" %(annualised_return))
+            market_value = float(balance_units)*float(scheme_info['nav'])
+            scheme_info.update(balance_units_value= "{0:.2f}".format(market_value))
             return self.render_response(scheme_info, as_json)
         else:
             return None
-            
+
+    @deprecated(version='2.4',
+                reason="This function will be in deprecated from next release, use mf.history() to get data")
     def get_scheme_historical_nav_year(self, code, year, as_json=False):
         """
         gets the scheme historical data of given year for a given scheme code
@@ -265,14 +258,16 @@ class Mftool():
         else:
             return None
 
+    @deprecated(version='2.4',
+                reason="This function will be in deprecated from next release, use mf.history() to get data")
     def get_scheme_historical_nav_for_dates(self, code, start_date, end_date, as_json=False):
         """
-            gets the scheme historical data between start_date and end_date for a given scheme code
-            :param start_date: string '%Y-%m-%d'
-            :param end_date: string '%Y-%m-%d'
-            :param code: scheme code
-            :return: dict or None
-            :raises: HTTPError, URLError
+        gets the scheme historical data between start_date and end_date for a given scheme code
+        :param start_date: string '%Y-%m-%d'
+        :param end_date: string '%Y-%m-%d'
+        :param code: scheme code
+        :return: dict or None
+        :raises: HTTPError, URLError
         """
         code = str(code)
         if self.is_valid_code(code):
@@ -369,7 +364,7 @@ class Mftool():
         else:
             url = performance_url + '&nav-date=' + self.get_today()
         #html = requests.get(url,headers=self._user_agent)
-        html = httpx.get(url,headers=self._user_agent,timeout=15)
+        html = httpx.get(url,headers=self._user_agent,timeout=25)
         soup = BeautifulSoup(html.text, 'html.parser')
         rows = soup.select("table tbody tr")
         try:
@@ -401,7 +396,12 @@ class Mftool():
 
         return self.render_response(fund_performance, as_json)
 
-    def get_all_amc_profiles(self,as_json):
+    def get_all_amc_profiles(self,as_json=True):
+        """
+        gets profiles for all Fund houses
+        :return: json format
+        :raises: HTTPError, URLError
+        """
         url = self._get_amc_details_url
         amc_profiles = []
         for amc in self._amc:
@@ -418,12 +418,12 @@ class Mftool():
 
     def get_average_aum(self,year_quarter,as_json=True):
         """
-           gets the Avearage AUM data for all Fund houses
-           :param as_json: True / False
-           :param year_quarter: string 'July - September 2020'
-           #quarter format should like - 'April - June 2020'
-           :return: json format
-           :raises: HTTPError, URLError
+       gets the Avearage AUM data for all Fund houses
+       :param as_json: True / False
+       :param year_quarter: string 'July - September 2020'
+       #quarter format should like - 'April - June 2020'
+       :return: json format
+       :raises: HTTPError, URLError
        """
         all_funds_aum = []
         url = self._get_avg_aum
@@ -439,3 +439,45 @@ class Mftool():
                 all_funds_aum.append(aum_fund)
                 aum_fund = None
         return self.render_response(all_funds_aum, as_json)
+
+    def history(self, code, start=None, end=None, period='5d', as_dataframe=True):
+        """
+        gets the scheme historical data in DataFrame or json for a given scheme code, only use NEW codes
+        :Parameters:
+            code : str, list
+                Scheme code to download
+            period : str
+                Valid periods: 1d,5d,1mo,3mo,6mo,1y,2y,5y,10y,max
+                Either Use period parameter or use start and end
+            start: str
+                Download start date string (YYYY-MM-DD) or _datetime.
+                Default is None
+            end: str
+                Download end date string (YYYY-MM-DD) or _datetime.
+                Default is None
+            as_dataframe: boolen
+                download data format,
+                True : DataFrame, False : JSON
+                Default is True
+        :return: Dataframe or JSON or None
+        :raises: HTTPError, URLError
+        """
+        code = str(code)
+        if self.is_code(code):
+            def get_Dataframe(df,as_dataframe):
+                df = df.drop(columns=['Open', 'High', 'Low','Adj Close','Volume'])
+                df = df.rename(columns={'Close': 'nav'})
+                df['dayChange'] = df['nav'].diff()
+                df = df.rename_axis('date')
+                df.index = df.index.strftime('%d-%m-%Y')
+                if not as_dataframe:                    # To get json format
+                    df.reset_index(inplace=True)
+                    return df.astype(str).to_json(orient = "index", date_format = "iso")
+                else:
+                    return df
+            code = code + ".BO"
+            if start and end is not None:
+                response = yf.download(code,start=start,end=end)
+            elif period is not None:
+                response = yf.download(code,period=period)
+            return get_Dataframe(response,as_dataframe)
