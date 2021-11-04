@@ -23,9 +23,7 @@ Features
 * Getting list of all schemes with there Scheme codes.
 * Get daily scheme performance.
 
-Documentation
-====================================
-http://mftool.readthedocs.io
+**Documentation** *[here](https://61836947349d9.site123.me/)*
 
 Related Projects
 ===================
