@@ -23,7 +23,7 @@ Features
 * Getting list of all schemes with there Scheme codes.
 * Get daily scheme performance.
 
-**View** *[**Documentation**](https://61836947349d9.site123.me/)*
+*[**Documentation**](https://61836947349d9.site123.me/)*
 
 Related Projects -
 
