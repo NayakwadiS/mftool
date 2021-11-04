@@ -23,10 +23,10 @@ Features
 * Getting list of all schemes with there Scheme codes.
 * Get daily scheme performance.
 
-**Documentation** *[view](https://61836947349d9.site123.me/)*
+**View** *[**Documentation**](https://61836947349d9.site123.me/)*
 
-Related Projects
-----------------
+Related Projects -
+
 1. Forecasting of Mutual Funds *[here](https://github.com/NayakwadiS/Forecasting_Mutual_Funds)*
 2. Predict Cryptocurrency in Indian Rupees *[here](https://github.com/NayakwadiS/Predict_Cryptocurrency_INR)*
 
