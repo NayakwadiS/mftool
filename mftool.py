@@ -28,7 +28,7 @@ import yfinance as yf
 import datetime
 from datetime import date,timedelta
 from deprecated import deprecated
-
+import inspect
 
 class Mftool():
     """
@@ -70,7 +70,7 @@ class Mftool():
         """
         self._session.proxies = proxy
 
-    def get_scheme_codes(self, as_json=False):
+    def get_scheme_codes(self, as_json=False, as_Dataframe=False):
         """
         returns a dictionary with key as scheme code and value as scheme name.
         cache handled internally
@@ -84,7 +84,7 @@ class Mftool():
             if ";INF" in scheme_data:
                 scheme = scheme_data.split(";")
                 scheme_info[scheme[0]] = scheme[3]
-        return self.render_response(scheme_info, as_json)
+        return self.render_response(scheme_info, as_json, as_Dataframe)
 
     def is_valid_code(self, code):
         """
@@ -124,18 +124,27 @@ class Mftool():
         return (date.today() - timedelta(days=1)).strftime("%d-%b-%Y")
 
     def render_response(self, data, as_json=False,as_Dataframe=False):
+
+        if as_Dataframe:
+            as_json = False
+        called_by = inspect.stack()[1][3]
+
         if as_json is True:
             return json.dumps(data)
         # as_Dataframe only works with get_scheme_historical_nav()
-        elif as_Dataframe is True:
+        elif as_Dataframe is True and called_by in ['get_scheme_historical_nav']:
             df = pd.DataFrame.from_records(data['data'])
             # df['DayChange'] = df['nav'].diff()
             df = df.set_index('date')
             return df
+        elif as_Dataframe:
+            if type(data) is dict:
+                data = [data]
+            return pd.DataFrame(data)
         else:
             return data
 
-    def get_scheme_quote(self, code, as_json=False):
+    def get_scheme_quote(self, code, as_json=False, as_Dataframe=False):
         """
         gets the quote for a given scheme code
         :param code: scheme code
@@ -156,11 +165,11 @@ class Mftool():
                     scheme_info['last_updated'] = scheme[5].replace("\r", "")
                     scheme_info['nav'] = scheme[4]
                     break
-            return self.render_response(scheme_info, as_json)
+            return self.render_response(scheme_info, as_json, as_Dataframe)
         else:
             return None
 
-    def get_scheme_details(self, code, as_json=False):
+    def get_scheme_details(self, code, as_json=False, as_Dataframe=False):
         """
         gets the scheme info for a given scheme code
         :param code: scheme code
@@ -179,7 +188,7 @@ class Mftool():
             scheme_info['scheme_code'] = scheme_data['scheme_code']
             scheme_info['scheme_name'] = scheme_data['scheme_name']
             scheme_info['scheme_start_date'] = response['data'][int(len(response['data']) -1)]
-            return self.render_response(scheme_info, as_json)
+            return self.render_response(scheme_info, as_json, as_Dataframe)
         else:
             return None
 
@@ -211,7 +220,7 @@ class Mftool():
         else:
             return None
 
-    def calculate_balance_units_value(self, code, balance_units, as_json=False):
+    def calculate_balance_units_value(self, code, balance_units, as_json=False, as_Dataframe=False):
         """
         gets the market value of your balance units for a given scheme code
         :param code: scheme code, balance_units : current balance units
@@ -223,13 +232,13 @@ class Mftool():
             scheme_info = self.get_scheme_quote(code)
             market_value = float(balance_units)*float(scheme_info['nav'])
             scheme_info.update(balance_units_value= "{0:.2f}".format(market_value))
-            return self.render_response(scheme_info, as_json)
+            return self.render_response(scheme_info, as_json, as_Dataframe)
         else:
             return None
 
     @deprecated(version='2.4',
                 reason="This function will be in deprecated from next release, use mf.history() to get data")
-    def get_scheme_historical_nav_year(self, code, year, as_json=False):
+    def get_scheme_historical_nav_year(self, code, year, as_json=False, as_Dataframe=False):
         """
         gets the scheme historical data of given year for a given scheme code
         :param code: scheme code
@@ -254,13 +263,13 @@ class Mftool():
                 data.append({'Error': 'For Year '+str(year)+' Data is NOT available'})
 
             scheme_info.update(data=data)
-            return self.render_response(scheme_info, as_json)
+            return self.render_response(scheme_info, as_json, as_Dataframe)
         else:
             return None
 
     @deprecated(version='2.4',
                 reason="This function will be in deprecated from next release, use mf.history() to get data")
-    def get_scheme_historical_nav_for_dates(self, code, start_date, end_date, as_json=False):
+    def get_scheme_historical_nav_for_dates(self, code, start_date, end_date, as_json=False, as_Dataframe=False):
         """
         gets the scheme historical data between start_date and end_date for a given scheme code
         :param start_date: string '%Y-%m-%d'
@@ -288,11 +297,11 @@ class Mftool():
                 data.append({'Data is NOT available for selected range'})
 
             scheme_info.update(data=data)
-            return self.render_response(scheme_info, as_json)
+            return self.render_response(scheme_info, as_json, as_Dataframe)
         else:
             return None
 
-    def get_open_ended_equity_scheme_performance(self, as_json=False):
+    def get_open_ended_equity_scheme_performance(self, as_json=False, as_Dataframe=False):
         """
         gets the daily performance of open ended equity schemes for all AMCs
         :return: json format
@@ -302,9 +311,9 @@ class Mftool():
         for key in self._open_ended_equity_category.keys():
             scheme_performance_url = self._get_open_ended_equity_scheme_url.replace('CAT',self._open_ended_equity_category[key])
             scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url)
-        return self.render_response(scheme_performance,as_json)
+        return self.render_response(scheme_performance,as_json, as_Dataframe)
 
-    def get_open_ended_debt_scheme_performance(self, as_json=False):
+    def get_open_ended_debt_scheme_performance(self, as_json=False, as_Dataframe=False):
         """
         gets the daily performance of open ended debt schemes for all AMCs
         :return: json format
@@ -315,9 +324,9 @@ class Mftool():
         for key in self._open_ended_debt_category.keys():
             scheme_performance_url = get_open_ended_debt_scheme_url.replace('CAT',self._open_ended_debt_category[key])
             scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url)
-        return self.render_response(scheme_performance,as_json)
+        return self.render_response(scheme_performance,as_json, as_Dataframe)
 
-    def get_open_ended_hybrid_scheme_performance(self, as_json=False):
+    def get_open_ended_hybrid_scheme_performance(self, as_json=False, as_Dataframe=False):
         """
         gets the daily performance of open ended hybrid schemes for all AMCs
         :return: json format
@@ -328,9 +337,9 @@ class Mftool():
         for key in self._open_ended_hybrid_category.keys():
             scheme_performance_url = get_open_ended_debt_scheme_url.replace('CAT',self._open_ended_hybrid_category[key])
             scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url)
-        return self.render_response(scheme_performance,as_json)
+        return self.render_response(scheme_performance,as_json, as_Dataframe)
 
-    def get_open_ended_solution_scheme_performance(self, as_json=False):
+    def get_open_ended_solution_scheme_performance(self, as_json=False, as_Dataframe=False):
         """
         gets the daily performance of open ended Solution-Oriented schemes for all AMCs
         :return: json format
@@ -342,9 +351,9 @@ class Mftool():
             scheme_performance_url = get_open_ended_solution_scheme_url.replace('CAT',
                                                                                 self._open_ended_solution_category[key])
             scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url)
-        return self.render_response(scheme_performance, as_json)
+        return self.render_response(scheme_performance, as_json, as_Dataframe)
 
-    def get_open_ended_other_scheme_performance(self, as_json=False):
+    def get_open_ended_other_scheme_performance(self, as_json=False, as_Dataframe=False):
         """
         gets the daily performance of open ended index and FoF schemes for all AMCs
         :return: json format
@@ -355,9 +364,9 @@ class Mftool():
         for key in self._open_ended_other_category.keys():
             scheme_performance_url = get_open_ended_other_scheme_url.replace('CAT',self._open_ended_other_category[key])
             scheme_performance[key] = self.get_daily_scheme_performance(scheme_performance_url)
-        return self.render_response(scheme_performance, as_json)
+        return self.render_response(scheme_performance, as_json, as_Dataframe)
 
-    def get_daily_scheme_performance(self, performance_url,as_json=False):
+    def get_daily_scheme_performance(self, performance_url,as_json=False, as_Dataframe=False):
         fund_performance = []
         if self.is_holiday():
             url = performance_url + '&nav-date=' + self.get_friday()
@@ -392,11 +401,11 @@ class Mftool():
                 fund_performance.append(scheme_details)
 
         except Exception:
-            return self.render_response(['The underlying data is unavailable for Today'], as_json)
+            return self.render_response(['The underlying data is unavailable for Today'], as_json, as_Dataframe)
 
-        return self.render_response(fund_performance, as_json)
+        return self.render_response(fund_performance, as_json, as_Dataframe)
 
-    def get_all_amc_profiles(self,as_json=True):
+    def get_all_amc_profiles(self,as_json=True, as_Dataframe=False):
         """
         gets profiles for all Fund houses
         :return: json format
@@ -414,9 +423,9 @@ class Mftool():
                     amc_details[row.select("td")[0].get_text()] = row.select("td")[1].get_text().strip()
             amc_profiles.append(amc_details)
             amc_details = None
-        return self.render_response(amc_profiles, as_json)
+        return self.render_response(amc_profiles, as_json, as_Dataframe)
 
-    def get_average_aum(self,year_quarter,as_json=True):
+    def get_average_aum(self,year_quarter,as_json=True, as_Dataframe=False):
         """
        gets the Avearage AUM data for all Fund houses
        :param as_json: True / False
@@ -438,7 +447,7 @@ class Mftool():
                 aum_fund['AAUM Domestic'] = row.select("td")[3].get_text().strip()
                 all_funds_aum.append(aum_fund)
                 aum_fund = None
-        return self.render_response(all_funds_aum, as_json)
+        return self.render_response(all_funds_aum, as_json, as_Dataframe)
 
     def history(self, code, start=None, end=None, period='5d', as_dataframe=True):
         """
