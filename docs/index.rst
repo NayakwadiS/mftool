@@ -222,11 +222,11 @@ Calculate Returns
 
 This calculates the Absolute return and IRR annulised return
 
->>> value = mf.calculate_balance_units_value(119597, 445.804)
+>>> value = mf.calculate_returns(119062,1718.925, 2000, 51)
 >>> print(value)
 {'scheme_code': '119062', 
- 'scheme_name': 'HDFC Hybrid Equity Fund - Growth Option - Direct Plan',
- 'last_updated': '03-Feb-2022', 
+ 'scheme_name': 'xxxxxxxxxxxxx',
+ 'last_updated': '01-Feb-2022', 
  'nav': '85.497', 
  'final_investment_value': '157214.45', 
  'absolute_return': '35.53 %', 
