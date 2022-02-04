@@ -1,6 +1,6 @@
 """
     The MIT License (MIT)
-    Copyright (c) 2021 Sujit Nayakwadi
+    Copyright (c) 2022 Sujit Nayakwadi
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
     in the Software without restriction, including without limitation the rights
@@ -126,10 +126,10 @@ class Mftool():
     def render_response(self, data, as_json=False,as_Dataframe=False):
         if as_json is True:
             return json.dumps(data)
-        # as_Dataframe only works with get_scheme_historical_nav()
+        # parameter 'as_Dataframe' only works with get_scheme_historical_nav()
         elif as_Dataframe is True:
             df = pd.DataFrame.from_records(data['data'])
-            # df['DayChange'] = df['nav'].diff()
+            df['dayChange'] = df['nav'].astype(float).diff(periods=-1)
             df = df.set_index('date')
             return df
         else:
@@ -227,7 +227,35 @@ class Mftool():
         else:
             return None
 
-    @deprecated(version='2.4',
+    def calculate_returns(self, code, balanced_units, monthly_sip, investment_in_months, as_json=False):
+        """
+       gets the market value of your balance units for a given scheme code
+       :param code: scheme code,
+                balance_units : current balance units
+                monthly_sip: monthly investment in scheme,
+                investment_in_months: months
+       :return: dict or None
+       :example: calculate_returns(119062,1718.925, 2000, 51)
+        """
+        code = str(code)
+        if self.is_valid_code(code):
+            scheme_info = {}
+            scheme_info = self.get_scheme_quote(code)
+            initial_investment = int(investment_in_months) * float(monthly_sip)
+            years = investment_in_months / 12
+            market_value = float(float(balanced_units) * float(scheme_info['nav']))
+            total_return = market_value - initial_investment
+            absolute_return = ((market_value - initial_investment)/ (initial_investment)) * 100
+            annualised_return = ((market_value / initial_investment) ** (1/years) - 1)*100
+
+            scheme_info.update(final_investment_value="{0:.2f}".format(market_value))
+            scheme_info.update(absolute_return="%.2f %%" %(absolute_return))
+            scheme_info.update(IRR_annualised_return="%.2f %%" %(annualised_return))
+            return self.render_response(scheme_info, as_json)
+        else:
+            return None
+
+    @deprecated(version='2.5',
                 reason="This function will be in deprecated from next release, use mf.history() to get data")
     def get_scheme_historical_nav_year(self, code, year, as_json=False):
         """
@@ -258,7 +286,7 @@ class Mftool():
         else:
             return None
 
-    @deprecated(version='2.4',
+    @deprecated(version='2.5',
                 reason="This function will be in deprecated from next release, use mf.history() to get data")
     def get_scheme_historical_nav_for_dates(self, code, start_date, end_date, as_json=False):
         """
