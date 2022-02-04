@@ -229,13 +229,13 @@ class Mftool():
 
     def calculate_returns(self, code, balanced_units, monthly_sip, investment_in_months, as_json=False):
         """
-       gets the market value of your balance units for a given scheme code
-       :param code: scheme code,
-                balance_units : current balance units
-                monthly_sip: monthly investment in scheme,
-                investment_in_months: months
-       :return: dict or None
-       :example: calculate_returns(119062,1718.925, 2000, 51)
+        gets the market value of your balance units for a given scheme code
+        :param code: scheme code,
+        :param balance_units : current balance units
+        :param monthly_sip: monthly investment in scheme
+        :param investment_in_months: months
+        :return: dict or None
+        :example: calculate_returns(119062,1718.925, 2000, 51)
         """
         code = str(code)
         if self.is_valid_code(code):
@@ -446,13 +446,13 @@ class Mftool():
 
     def get_average_aum(self,year_quarter,as_json=True):
         """
-       gets the Avearage AUM data for all Fund houses
-       :param as_json: True / False
-       :param year_quarter: string 'July - September 2020'
-       #quarter format should like - 'April - June 2020'
-       :return: json format
-       :raises: HTTPError, URLError
-       """
+        gets the Avearage AUM data for all Fund houses
+        :param as_json: True / False
+        :param year_quarter: string 'July - September 2020'
+        #quarter format should like - 'April - June 2020'
+        :return: json format
+        :raises: HTTPError, URLError
+        """
         all_funds_aum = []
         url = self._get_avg_aum
         html = requests.post(url,headers=self._user_agent,data={"AUmType":'F',"Year_Quarter":year_quarter})
