@@ -217,7 +217,22 @@ provide with scheme code and units balance you are having
  'balance_units_value': '17838.31'
  }
  
+Calculate Returns
+-------------------------------
 
+This calculates the Absolute return and IRR annulised return
+
+>>> value = mf.calculate_balance_units_value(119597, 445.804)
+>>> print(value)
+{'scheme_code': '119062', 
+ 'scheme_name': 'HDFC Hybrid Equity Fund - Growth Option - Direct Plan',
+ 'last_updated': '03-Feb-2022', 
+ 'nav': '85.497', 
+ 'final_investment_value': '157214.45', 
+ 'absolute_return': '35.53 %', 
+ 'IRR_annualised_return': '6.49 %'
+ }
+ 
 Get daily performance of Equity schemes
 -------------------------------------------------
 
