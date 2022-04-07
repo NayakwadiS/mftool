@@ -509,3 +509,23 @@ class Mftool():
             elif period is not None:
                 response = yf.download(code,period=period)
             return get_Dataframe(response,as_dataframe)
+        
+    def get_scheme_info(self, code, as_json=True):
+        """
+        gets the complete information for a given scheme code, only use NEW scheme codes
+        :Parameters:
+            code : str
+                Scheme code to download
+            as_json: True / False
+                Default is True
+        :return: JSON or None
+        :raises: HTTPError, URLError
+        """
+        code = str(code)
+        if self.is_code(code):
+            code = code + ".BO"
+            mf = yf.Ticker(code)
+            response = mf.info
+        return self.render_response(response, as_json)
+            
+ 
