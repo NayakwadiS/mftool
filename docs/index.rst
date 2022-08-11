@@ -127,7 +127,7 @@ To get scheme info with sector weight, holdings etc.
 
 .. note:: 
 
-    use new scheme codes presented here-
+    only use new scheme codes to get info presented here-
     https://github.com/NayakwadiS/Forecasting_Mutual_Funds/blob/master/codes.json
     
 
