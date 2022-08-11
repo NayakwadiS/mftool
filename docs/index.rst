@@ -75,7 +75,7 @@ instantiating it requires no contructor arguments.
 
 >>> from mftool import Mftool
 >>> mf = Mftool()
->>> print mf
+>>> print(mf)
 Driver Class for The Association of Mutual Funds in India (AMFI)
 
 
@@ -120,6 +120,16 @@ Get Scheme Details
  'scheme_start_date': {'date': '10-09-2012', 'nav': '10.01030'}
 }
 
+
+To get scheme info with sector weight, holdings etc.
+---------------------------------------------------
+>>> mf.get_scheme_info('xxxxxxx', as_json=True)
+
+.. note:: 
+
+    use new scheme codes presented here-
+    https://github.com/NayakwadiS/Forecasting_Mutual_Funds/blob/master/codes.json
+    
 
 List of Mutual Funds Scheme Codes & Names
 -----------------------------------------
