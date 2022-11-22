@@ -24,6 +24,8 @@ class TestAPIs(unittest.TestCase):
         self.assertIsInstance(sc_json, str)
         # reconstruct the dict from json and compare
         six.assertCountEqual(self, sc, json.loads(sc_json))
+        result = self.mftool.get_available_schemes('ICICI')
+        self.assertNotIn(result[next(iter(result))], "Axis")
 
     def test_is_valid_code(self):
         code = '119598'
