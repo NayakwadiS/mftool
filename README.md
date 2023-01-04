@@ -1,4 +1,4 @@
-<img src="./mftool.PNG"  height="150">
+<img src="./docs/mftool.PNG"  height="150">
 
 Python library for getting realtime Mutual Funds data in India
 
