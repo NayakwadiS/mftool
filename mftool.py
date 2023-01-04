@@ -86,6 +86,15 @@ class Mftool():
                 scheme_info[scheme[0]] = scheme[3]
         return self.render_response(scheme_info, as_json)
 
+    def get_available_schemes(self, amc_name):
+        """
+        returns a dictionary with key as scheme code and value as scheme name for given amc.
+        :param amc_name: a string name of amc eg- Axis, ICICI, Reliance
+        :return: dict / json
+        """
+        all_schemes = self.get_scheme_codes(as_json=False)
+        return {k: v for (k, v) in all_schemes.items() if amc_name.lower() in v.lower()}
+
     def is_valid_code(self, code):
         """
         check whether a given scheme code is correct or NOT
