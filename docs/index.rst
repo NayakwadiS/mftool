@@ -79,6 +79,20 @@ instantiating it requires no contructor arguments.
 Driver Class for The Association of Mutual Funds in India (AMFI)
 
 
+Get Available Schems
+--------------------
+
+To get all available schemes under specific AMC
+returns a dictionary with key as scheme code and value as scheme name for given amc.
+
+>>> result = m.get_available_schemes('ICICI')
+>>> print(result)
+{'112343': 'ICICI Prudential Banking and PSU Debt Fund -  Daily IDCW',
+.
+.
+}
+
+
 Getting a Scheme Quote
 ----------------------
 
