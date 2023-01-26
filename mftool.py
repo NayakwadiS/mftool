@@ -1,6 +1,6 @@
 """
     The MIT License (MIT)
-    Copyright (c) 2022 Sujit Nayakwadi
+    Copyright (c) 2023 Sujit Nayakwadi
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
     in the Software without restriction, including without limitation the rights
@@ -54,7 +54,6 @@ class Mftool():
         self._user_agent = self._const['user_agent']
         self._codes = self._const['codes']
         self._scheme_codes=self.get_scheme_codes().keys()
-
 
     def init_const(self):
         with open(self._filepath, 'r') as f:
@@ -264,7 +263,7 @@ class Mftool():
         else:
             return None
 
-    @deprecated(version='2.5',
+    @deprecated(version='2.6',
                 reason="This function will be in deprecated from next release, use mf.history() to get data")
     def get_scheme_historical_nav_year(self, code, year, as_json=False):
         """
@@ -295,7 +294,7 @@ class Mftool():
         else:
             return None
 
-    @deprecated(version='2.5',
+    @deprecated(version='2.6',
                 reason="This function will be in deprecated from next release, use mf.history() to get data")
     def get_scheme_historical_nav_for_dates(self, code, start_date, end_date, as_json=False):
         """
@@ -518,7 +517,7 @@ class Mftool():
             elif period is not None:
                 response = yf.download(code,period=period)
             return get_Dataframe(response,as_dataframe)
-        
+
     def get_scheme_info(self, code, as_json=True):
         """
         gets the complete information for a given scheme code, only use NEW scheme codes
@@ -536,5 +535,3 @@ class Mftool():
             mf = yf.Ticker(code)
             response = mf.info
         return self.render_response(response, as_json)
-            
- 

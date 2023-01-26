@@ -85,7 +85,7 @@ Get Available Schems
 To get all available schemes under specific AMC
 returns a dictionary with key as scheme code and value as scheme name for given amc.
 
->>> result = m.get_available_schemes('ICICI')
+>>> result = mf.get_available_schemes('ICICI')
 >>> print(result)
 {'112343': 'ICICI Prudential Banking and PSU Debt Fund -  Daily IDCW',
 .

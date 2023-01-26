@@ -7,7 +7,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name="mftool",
-    version="2.3",
+    version="2.6",
     author="SujitN",
     author_email="nayakwadi_sujit@rediffmail.com",
     description="Library for getting real time Mutual funds info",
