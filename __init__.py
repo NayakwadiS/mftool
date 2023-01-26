@@ -1,7 +1,7 @@
 """
     The MIT License (MIT)
 
-    Copyright (c) 2021 Sujit Nayakwadi
+    Copyright (c) 2023 Sujit Nayakwadi
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
@@ -21,5 +21,5 @@
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 """
-__VERSION__='2.2'
+__VERSION__='2.6'
 from .mftool import Mftool
