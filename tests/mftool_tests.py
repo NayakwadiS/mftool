@@ -6,6 +6,7 @@ import logging
 import json
 import six
 from mftool import Mftool
+from utils import is_holiday, get_friday, get_today
 
 log = logging.getLogger('mftool')
 logging.basicConfig(level=logging.DEBUG)
@@ -101,10 +102,10 @@ class TestAPIs(unittest.TestCase):
         self.assertIsNotNone(result)
 
     def test_get_day(self):
-        if self.mftool.is_holiday():
-            self.assertTrue((self.mftool.get_friday()))
+        if is_holiday():
+            self.assertTrue(get_friday())
         else:
-            self.assertTrue((self.mftool.get_today()))
+            self.assertTrue(get_today())
 
     def test_get_scheme_historical_nav_for_dates(self):
         code = '101305'
