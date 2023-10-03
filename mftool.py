@@ -28,6 +28,9 @@ import yfinance as yf
 import datetime
 from datetime import date,timedelta
 from deprecated import deprecated
+from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.edge.options import Options
 
 
 class Mftool():
@@ -45,12 +48,14 @@ class Mftool():
         self._get_amc_details_url = self._const['get_amc_details_url']
         self._get_open_ended_equity_scheme_url = self._const['get_open_ended_equity_scheme_url']
         self._get_avg_aum = self._const['get_avg_aum_url']
+        self._get_ter_details = self._const['get_ter_details_url']
         self._open_ended_equity_category = self._const['open_ended_equity_category']
         self._open_ended_debt_category = self._const['open_ended_debt_category']
         self._open_ended_hybrid_category = self._const['open_ended_hybrid_category']
         self._open_ended_solution_category = self._const['open_ended_solution_category']
         self._open_ended_other_category = self._const['open_ended_other_category']
         self._amc=self._const['amc']
+        self._ter_cat=self._const['ter_cat']
         self._user_agent = self._const['user_agent']
         self._codes = self._const['codes']
         self._scheme_codes=self.get_scheme_codes().keys()
@@ -395,13 +400,20 @@ class Mftool():
 
     def get_daily_scheme_performance(self, performance_url,as_json=False):
         fund_performance = []
+        options = Options()
+        options.add_argument("--headless")
+        dr = webdriver.Edge(options)
+        
         if self.is_holiday():
             url = performance_url + '&nav-date=' + self.get_friday()
         else:
             url = performance_url + '&nav-date=' + self.get_today()
-        #html = requests.get(url,headers=self._user_agent)
-        html = httpx.get(url,headers=self._user_agent,timeout=25)
-        soup = BeautifulSoup(html.text, 'html.parser')
+
+#         Using Selenium to get the daily scheme performance; the previous version code commented for reference
+#         html = httpx.get(url,headers=self._user_agent,timeout=25)
+#         soup = BeautifulSoup(html.text, 'html.parser')
+        dr.get(url)
+        soup = BeautifulSoup(dr.page_source,"lxml")
         rows = soup.select("table tbody tr")
         try:
             for tr in rows:
@@ -426,10 +438,11 @@ class Mftool():
                 scheme_details['5-Year Return(%)- Direct'] = dirData[0]['data-5y']
 
                 fund_performance.append(scheme_details)
+                
 
         except Exception:
             return self.render_response(['The underlying data is unavailable for Today'], as_json)
-
+        dr.quit()
         return self.render_response(fund_performance, as_json)
 
     def get_all_amc_profiles(self,as_json=True):
@@ -475,6 +488,50 @@ class Mftool():
                 all_funds_aum.append(aum_fund)
                 aum_fund = None
         return self.render_response(all_funds_aum, as_json)
+    
+    ### Function for the Total Expense Ratio (TER) of all the funds
+    
+    def get_TER_Details(self,as_json=True):
+        """
+        gets the Total Expense Ratio data for all Fund houses
+        :param as_json: True / False
+        :return: json format
+        :raises: HTTPError, URLError
+        """
+    
+        if self.is_holiday():
+            MonthTER = datetime.datetime.strptime(self.get_friday(), "%d-%b-%Y").strftime("%#m-%Y")
+        else:
+            MonthTER = datetime.datetime.strptime(self.get_today(), "%d-%b-%Y").strftime("%#m-%Y")
+        
+        url = self._get_ter_details
+        all_funds_ter = []
+        for keys in self._ter_cat.keys():
+            for subkeys in self._ter_cat[keys].keys():
+                
+                html = requests.post(url,headers=self._user_agent,data={"MonthTER":MonthTER,"MF_ID":"-1","NAV_ID":keys,"SchemeCat_Desc":subkeys})
+                soup = BeautifulSoup(html.text, 'html.parser')
+                rows = soup.select("table tbody tr")
+
+                for row in rows:
+                    ter_fund = {}
+                    if len(row.findAll('td')) > 1:
+                        ter_fund['Scheme Name']= row.select("td")[0].get_text().strip()
+                        ter_fund['TER Date']= row.select("td")[1].get_text().strip()
+                        ter_fund['Regular Plan - Base TER (%)'] = row.select("td")[2].get_text().strip()
+                        ter_fund['Regular Plan - Additional expense as per Regulation 52(6A)(b) (%)'] = row.select("td")[3].get_text().strip()
+                        ter_fund['Regular Plan - Additional expense as per Regulation 52(6A)(c) (%)'] = row.select("td")[4].get_text().strip()
+                        ter_fund['Regular Plan - GST (%)'] = row.select("td")[5].get_text().strip()
+                        ter_fund['Regular Plan - Total TER (%)'] = row.select("td")[6].get_text().strip()
+                        ter_fund['Direct Plan - Base TER (%)'] = row.select("td")[7].get_text().strip()
+                        ter_fund['Direct Plan - Additional expense as per Regulation 52(6A)(b) (%)'] = row.select("td")[8].get_text().strip()
+                        ter_fund['Direct Plan - Additional expense as per Regulation 52(6A)(c) (%)'] = row.select("td")[9].get_text().strip()
+                        ter_fund['Direct Plan - GST (%)'] = row.select("td")[10].get_text().strip()
+                        ter_fund['Direct Plan - Total TER (%)'] = row.select("td")[11].get_text().strip()
+                        all_funds_ter.append(ter_fund)
+                        ter_fund = None
+
+        return self.render_response(all_funds_ter, as_json)
 
     def history(self, code, start=None, end=None, period='5d', as_dataframe=True):
         """
