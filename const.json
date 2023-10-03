@@ -4,9 +4,24 @@
 	"get_amc_details_url": "https://www.amfiindia.com/modules/AMCProfileDetail",
 	"get_open_ended_equity_scheme_url": "http://www.valueresearchonline.com/amfi/fund-performance-data/?end-type=1&primary-category=SEQ&category=CAT&amc=ALL",
 	"get_avg_aum_url": "https://www.amfiindia.com/modules/AverageAUMDetails",
+    "get_ter_details_url":"https://www.amfiindia.com/modules/LoadTERData",
 	"user_agent": {
 		"User-Agent": "Chrome/95.0.4638.69"
 	},
+      "ter_cat":{"1":{"14":"Multi Cap Fund","15":"Large Cap Fund","16":"Large & Mid Cap Fund","17":"Mid Cap Fund",
+                "18":"Small Cap Fund","19":"Dividend Yield Fund","20":"Value Fund","21":"Contra Fund","22":"Focused Fund",
+                "23":"Sectoral/ Thematic","24":"ELSS","25":"Overnight Fund","26":"Liquid Fund","27":"Ultra Short Duration Fund",
+                "28":"Low Duration Fund","29":"Money Market Fund","30":"Short Duration Fund","31":"Medium Duration Fund",
+                "32":"Medium to Long Duration Fund","33":"Long Duration Fund","34":"Dynamic Bond","35":"Corporate Bond Fund",
+                "36":"Credit Risk Fund","37":"Banking and PSU Fund","38":"Gilt Fund","39":"Gilt Fund with 10 year constant duration",
+                "40":"Floater Fund","41":"Conservative Hybrid Fund","41":"Conservative Hybrid Fund","42":"Balanced Hybrid Fund",
+                "43":"Aggressive Hybrid Fund","44":"Dynamic Asset Allocation or Balanced Advantage","45":"Multi Asset Allocation",
+                "46":"Arbitrage Fund","47":"Equity Savings","48":"Retirement Fund","49":"Children’s Fund","50":"Index Funds",
+                "51":"Gold ETF","52":"Other  ETFs","53":"FoF Overseas","54":"FoF Domestic","55":"Flexi Cap Fund"},
+           "3":{"1":"Income"},
+           "2":{"1":"Income","2":"Growth","3":"Balanced","4":"Liquid","5":"Money Market",
+                "6":"Gilt","7":"ELSS","8":"Assured Return","10":"Fund of Funds - Domestic"}},
+
 	"open_ended_equity_category": {
 		"Large Cap": "SEQ_LC",
 		"Large & Mid Cap": "SEQ_LMC",
