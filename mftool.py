@@ -427,15 +427,19 @@ class Mftool():
 
                 regData = tr.find_all("td", recursive=False,class_="text-right period-return-reg", limit=1)
                 dirData = tr.find_all("td", recursive=False, class_="text-right period-return-dir", limit=1)
+                benchmarkData = tr.find_all("td", recursive=False, class_="text-right period-return-bench-mark", limit=1)
 
                 scheme_details['1-Year Return(%)- Regular'] = regData[0]['data-1y']
                 scheme_details['1-Year Return(%)- Direct'] = dirData[0]['data-1y']
-
+                scheme_details['1-Year Return(%)- Benchmark'] = benchmarkData[0]['data-1y']
+                
                 scheme_details['3-Year Return(%)- Regular'] = regData[0]['data-3y']
                 scheme_details['3-Year Return(%)- Direct'] = dirData[0]['data-3y']
-
+                scheme_details['3-Year Return(%)- Benchmark'] = benchmarkData[0]['data-3y']
+                
                 scheme_details['5-Year Return(%)- Regular'] = regData[0]['data-5y']
                 scheme_details['5-Year Return(%)- Direct'] = dirData[0]['data-5y']
+                scheme_details['5-Year Return(%)- Benchmark'] = benchmarkData[0]['data-5y']
 
                 fund_performance.append(scheme_details)
                 
