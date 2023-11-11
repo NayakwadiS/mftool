@@ -112,10 +112,7 @@ class Mftool():
         :param code: a string scheme code
         :return: Boolean
         """
-        if code:
-            return any(code in cd for cd in self._codes)
-        else:
-            return False
+        return code in self._codes
 
     def is_holiday(self):
         if date.today().strftime("%a") in ['Sat', 'Sun', 'Mon']:

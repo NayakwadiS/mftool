@@ -122,12 +122,22 @@ class TestAPIs(unittest.TestCase):
         self.assertIsNotNone(result)
 
     def test_get_open_ended_equity_scheme_performance(self):
-        self.assertIsInstance(self.mftool.get_open_ended_equity_scheme_performance(False), dict)
+        self.assertIsInstance(self.mftool.get_open_ended_equity_scheme_performance(True), dict)
         # verify data present
-        result = self.mftool.get_open_ended_equity_scheme_performance(False)
+        result = self.mftool.get_open_ended_equity_scheme_performance(True)
         self.assertNotEqual(result,{'Large Cap': [],'Large & Mid Cap': [],'Multi Cap': [],'Mid Cap': [],
                                     'Small Cap': [],'Value': [],'ELSS': [],'Contra': [],'Dividend Yield': [],
                                     'Focused': []})
+
+    def test_is_code(self):
+        code = '0P0001508O'
+        self.assertTrue(self.mftool.is_code(code))
+
+    def test_negative_is_code(self):
+        wrong_code = '0P0001508'
+        self.assertFalse(self.mftool.is_code(wrong_code))
+        no_code = ''
+        self.assertFalse(self.mftool.is_code(no_code))
 
 # ToDO : Add remaining test
 
