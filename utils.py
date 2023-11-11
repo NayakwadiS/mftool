@@ -38,6 +38,6 @@ def render_response(data, as_json=False, as_Dataframe=False):
 class Utilities:
 
     def __init__(self):
-        self._filepath = str(os.path.dirname(os.path.abspath(__file__))) + '/data/const.json'
+        self._filepath = str(os.path.dirname(os.path.abspath(__file__))) + '/const.json'
         with open(self._filepath, 'r') as f:
             self.values = json.load(f)
