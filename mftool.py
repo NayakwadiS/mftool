@@ -24,8 +24,7 @@ from bs4 import BeautifulSoup
 import yfinance as yf
 import datetime
 from deprecated import deprecated
-from utils import Utilities as Utils
-from utils import is_holiday, get_today, get_friday, render_response
+from utils import Utilities, is_holiday, get_today, get_friday, render_response
 
 
 class Mftool:
@@ -35,7 +34,7 @@ class Mftool:
     """
     def __init__(self):
         self._session = requests.session()
-        self._const = Utils().values
+        self._const = Utilities().values
         # URL list
         self._get_quote_url = self._const['get_quote_url']
         self._get_scheme_url = self._const['get_scheme_url']
