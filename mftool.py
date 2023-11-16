@@ -24,7 +24,7 @@ from bs4 import BeautifulSoup
 import yfinance as yf
 import datetime
 from deprecated import deprecated
-from .utils import Utilities, is_holiday, get_today, get_friday, render_response
+from utils import Utilities, is_holiday, get_today, get_friday, render_response
 
 
 class Mftool:
