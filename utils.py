@@ -1,15 +1,12 @@
 import json
 import os
-import json
 import pandas as pd
 from datetime import date, timedelta
 
+HOLIDAYS = ['Sat', 'Sun', 'Mon']
 
 def is_holiday():
-    if date.today().strftime("%a") in ['Sat', 'Sun', 'Mon']:
-        return True
-    else:
-        return False
+    return date.today().strftime("%a") in HOLIDAYS
 
 
 def get_friday():
