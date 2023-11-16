@@ -80,7 +80,7 @@ class Mftool():
         response = self._session.get(url)
         data = response.text.split("\n")
         for scheme_data in data:
-            if ";INF" in scheme_data:
+            if ";" in scheme_data:
                 scheme = scheme_data.split(";")
                 scheme_info[scheme[0]] = scheme[3]
         return self.render_response(scheme_info, as_json)
