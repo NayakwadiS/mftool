@@ -104,10 +104,7 @@ class Mftool:
         :param code: a string scheme code
         :return: Boolean
         """
-        if code:
-            return any(code in cd for cd in self._codes)
-        else:
-            return False
+        return code in self._codes
 
     def get_scheme_quote(self, code, as_json=False):
         """
