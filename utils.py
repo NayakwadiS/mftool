@@ -1,15 +1,12 @@
 import json
 import os
-import json
 import pandas as pd
 from datetime import date, timedelta
 
+HOLIDAYS = ['Sat', 'Sun', 'Mon']
 
 def is_holiday():
-    if date.today().strftime("%a") in ['Sat', 'Sun', 'Mon']:
-        return True
-    else:
-        return False
+    return date.today().strftime("%a") in HOLIDAYS
 
 
 def get_friday():
@@ -38,6 +35,6 @@ def render_response(data, as_json=False, as_Dataframe=False):
 class Utilities:
 
     def __init__(self):
-        self._filepath = str(os.path.dirname(os.path.abspath(__file__))) + '/const.json'
+        self._filepath = str(os.path.dirname(os.path.abspath(__file__))) + '/data/const.json'
         with open(self._filepath, 'r') as f:
             self.values = json.load(f)

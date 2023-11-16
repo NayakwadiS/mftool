@@ -24,7 +24,7 @@ from bs4 import BeautifulSoup
 import yfinance as yf
 import datetime
 from deprecated import deprecated
-from .utils import Utilities, is_holiday, get_today, get_friday, render_response
+from utils import Utilities, is_holiday, get_today, get_friday, render_response
 
 
 class Mftool:
@@ -104,10 +104,7 @@ class Mftool:
         :param code: a string scheme code
         :return: Boolean
         """
-        if code:
-            return any(code in cd for cd in self._codes)
-        else:
-            return False
+        return code in self._codes
 
     def get_scheme_quote(self, code, as_json=False):
         """
