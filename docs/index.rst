@@ -117,7 +117,7 @@ we need is Code for this company.
 
     Always use AMFI codes of schemes.
 	All scheme codes are presented here -
-	https://raw.githubusercontent.com/NayakwadiS/mftool/master/Scheme_codes.txt
+	https://raw.githubusercontent.com/NayakwadiS/mftool/master/data/Scheme_codes.txt
 	or 
 	use mf.get_scheme_codes()
 	
