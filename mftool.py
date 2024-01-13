@@ -509,4 +509,4 @@ class Mftool:
             code = code + ".BO"
             mf = yf.Ticker(code)
             response = mf.info
-        return render_response(response, as_json)
+            return render_response(response, as_json)
