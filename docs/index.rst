@@ -135,7 +135,7 @@ Get Scheme Details
 }
 
 
-To get scheme info with sector weight, holdings etc.
+To get more scheme details
 ---------------------------------------------------
 >>> mf.get_scheme_info('xxxxxxx', as_json=True)
 
