@@ -72,7 +72,7 @@ class Mftool:
         response = self._session.get(url)
         data = response.text.split("\n")
         for scheme_data in data:
-            if ";INF" in scheme_data:
+            if ";" in scheme_data:
                 scheme = scheme_data.split(";")
                 scheme_info[scheme[0]] = scheme[3]
         return render_response(scheme_info, as_json)
@@ -509,4 +509,4 @@ class Mftool:
             code = code + ".BO"
             mf = yf.Ticker(code)
             response = mf.info
-        return render_response(response, as_json)
+            return render_response(response, as_json)
