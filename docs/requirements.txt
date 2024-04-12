@@ -8,7 +8,7 @@ charset-normalizer==2.1.1
     # via requests
 docutils==0.19
     # via sphinx
-idna==3.4
+idna==3.7
     # via requests
 imagesize==1.4.1
     # via sphinx
