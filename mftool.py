@@ -32,7 +32,7 @@ class Mftool:
     class which implements all the functionality for
     Mutual Funds in India
     """
-    def __init__(self):
+    def __init__(self, session=None, cache=None):
         self._session = requests.session()
         self._const = Utilities().values
         # URL list
@@ -50,6 +50,8 @@ class Mftool:
         self._user_agent = self._const['user_agent']
         self._codes = self._const['codes']
         self._scheme_codes = self.get_scheme_codes().keys()
+        self._session = session
+        yf.set_tz_cache_location(cache)
 
     def set_proxy(self, proxy):
         """
@@ -488,9 +490,9 @@ class Mftool:
                     return df
             code = code + ".BO"
             if start and end is not None:
-                response = yf.download(code,start=start,end=end)
+                response = yf.download(code,start=start,end=end,session=self._session)
             elif period is not None:
-                response = yf.download(code,period=period)
+                response = yf.download(code,period=period,session=self._session)
             return get_Dataframe(response, as_dataframe)
 
     def get_scheme_info(self, code, as_json=True):
@@ -507,6 +509,6 @@ class Mftool:
         code = str(code)
         if self.is_code(code):
             code = code + ".BO"
-            mf = yf.Ticker(code)
+            mf = yf.Ticker(code, session=self._session)
             response = mf.info
             return render_response(response, as_json)
