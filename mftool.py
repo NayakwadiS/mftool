@@ -33,7 +33,10 @@ class Mftool:
     Mutual Funds in India
     """
     def __init__(self, session=None, cache=None):
-        self._session = requests.session()
+        if session is None:
+            self._session = requests.session()
+        else:
+            self._session = session
         self._const = Utilities().values
         # URL list
         self._get_quote_url = self._const['get_quote_url']
@@ -50,7 +53,6 @@ class Mftool:
         self._user_agent = self._const['user_agent']
         self._codes = self._const['codes']
         self._scheme_codes = self.get_scheme_codes().keys()
-        self._session = session
         yf.set_tz_cache_location(cache)
 
     def set_proxy(self, proxy):
