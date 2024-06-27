@@ -12,7 +12,7 @@ Python library for getting Mutual Funds data in India
 
 Introduction
 ============
-mftool is a library for getting publically available real time Mutual Funds data in India. It can be used in various types of projects which requires getting live quotes for a given mutual fund scheme or build large data sets for further data analytics.
+mftool is a library for getting publically available Mutual Funds data in India. It can be used in various types of projects which requires getting live quotes for a given mutual fund scheme or build large data sets for further data analytics.
 
 Features
 =============
