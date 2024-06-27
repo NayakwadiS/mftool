@@ -1,6 +1,6 @@
 <img src="/docs/mftool.png"  height="150">
 
-Python library for getting realtime Mutual Funds data in India
+Python library for getting Mutual Funds data in India
 
 ![Python](https://img.shields.io/badge/python-v3.7+-blue.svg)
 [![Pypi](https://img.shields.io/badge/pypi-v2.8-green)](https://pypi.python.org/pypi/mftool)
@@ -25,7 +25,7 @@ Features
 * Getting list of all schemes with there Scheme codes.
 * Get daily scheme performance.
 
-*[**Documentation**](https://61836947349d9.site123.me/)*
+//*[**Documentation**](https://61836947349d9.site123.me/)*
 
 Related Projects -
 
