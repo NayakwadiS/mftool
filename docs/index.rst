@@ -246,7 +246,7 @@ Calculate Returns
 
 This calculates the Absolute return and IRR annulised return
 
->>> value = mf.calculate_returns(119062,1718.925, 2000, 51)
+>>> value = mf.calculate_returns(code=119062,balanced_units=1718.925, monthly_sip=2000, investment_in_months=51)
 >>> print(value)
 {'scheme_code': '119062', 
  'scheme_name': 'xxxxxxxxxxxxx',
