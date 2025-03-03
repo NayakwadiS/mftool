@@ -330,6 +330,14 @@ Methode gives us Profile data of all AMCs
 >>> print(amc_details)
 
 
+All AMC profiles
+-------------------------------------------------
+
+plot and Compare trend of mutual funds
+
+>>> result = mf.compare_trend(['xxxxxx', 'xxxxxx'], '1-1-2015', '29-12-2018')
+
+
 Related Projects
 ===================
 1. Forecasting Mutual Funds -

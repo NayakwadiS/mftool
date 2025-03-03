@@ -1,6 +1,6 @@
 """
     The MIT License (MIT)
-    Copyright (c) 2023 Sujit Nayakwadi
+    Copyright (c) 2024 Sujit Nayakwadi
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
     in the Software without restriction, including without limitation the rights
@@ -24,7 +24,9 @@ from bs4 import BeautifulSoup
 import yfinance as yf
 import datetime
 from deprecated import deprecated
+from matplotlib import pyplot as plt
 from .utils import Utilities, is_holiday, get_today, get_friday, render_response
+import pandas as pd
 
 
 class Mftool:
@@ -236,23 +238,23 @@ class Mftool:
         else:
             return None
 
-    @deprecated(version='2.7',
+    @deprecated(version='2.8',
                 reason="This function will be in deprecated from next release, use mf.history() to get data")
-    def get_scheme_historical_nav_year(self, code, year, as_json=False):
+    def get_scheme_historical_nav_year(self, code, year, as_json=False, as_dataframe=False):
         """
         gets the scheme historical data of given year for a given scheme code
         :param code: scheme-code
         :param year: year
         :param as_json: default false
+        :param as_dataframe: default false
         :return: dict or None
         :raises: HTTPError, URLError
         """
         code = str(code)
         if self.is_valid_code(code):
-            scheme_info = {}
             data = []
-            url = self._get_scheme_url + code
-            response = self._session.get(url).json()
+            # url = self._get_scheme_url + code
+            # response = self._session.get(url).json()
             nav = self.get_scheme_historical_nav(code)
             scheme_info = self.get_scheme_details(code)
             for dat in nav['data']:
@@ -264,30 +266,31 @@ class Mftool:
                 data.append({'Error': 'For Year '+str(year)+' Data is NOT available'})
 
             scheme_info.update(data=data)
-            return render_response(scheme_info, as_json)
+            return render_response(scheme_info, as_json, as_dataframe)
         else:
             return None
 
     @deprecated(version='2.7',
                 reason="This function will be in deprecated from next release, use mf.history() to get data")
-    def get_scheme_historical_nav_for_dates(self, code, start_date, end_date, as_json=False):
+    def get_scheme_historical_nav_for_dates(self, code, start_date, end_date, as_json=False, as_dataframe=False):
         """
         gets the scheme historical data between start_date and end_date for a given scheme code
         :param start_date: string '%Y-%m-%d'
         :param end_date: string '%Y-%m-%d'
         :param code: scheme code
         :param as_json: default false
+        :param as_dataframe: default false
         :return: dict or None
         :raises: HTTPError, URLError
         """
         code = str(code)
         if self.is_valid_code(code):
-            scheme_info = {}
+            # scheme_info = {}
             data = []
             start_date = datetime.datetime.strptime(start_date, '%d-%m-%Y').date()
             end_date = datetime.datetime.strptime(end_date, '%d-%m-%Y').date()
-            url = self._get_scheme_url + code
-            response = self._session.get(url).json()
+            # url = self._get_scheme_url + code
+            # response = self._session.get(url).json()
             nav = self.get_scheme_historical_nav(code)
             scheme_info = self.get_scheme_details(code)
             for dat in nav['data']:
@@ -299,7 +302,7 @@ class Mftool:
                 data.append({'Data is NOT available for selected range'})
 
             scheme_info.update(data=data)
-            return render_response(scheme_info, as_json)
+            return render_response(scheme_info, as_json, as_dataframe)
         else:
             return None
 
@@ -510,3 +513,31 @@ class Mftool:
             mf = yf.Ticker(code)
             response = mf.info
             return render_response(response, as_json)
+
+    def compare_trend(self, codes, start_date, end_date):
+        """
+        plot and Compare trend of mutual funds
+        :param start_date: string '%Y-%m-%d'
+        :param end_date: string '%Y-%m-%d'
+        :param code: scheme code
+        :param as_json: default false
+        :param as_dataframe: default false
+        :return: dict or None
+        :raises: HTTPError, URLError
+        """
+        all_mf = pd.DataFrame()
+        for code in codes:
+            mf_data = self.get_scheme_historical_nav_for_dates(code, start_date, end_date, as_dataframe=True)
+            mf_data = mf_data.drop(columns=['dayChange'])
+            mf_name = self.get_scheme_details(code)['scheme_name']
+            mf_data[mf_name] = mf_data['nav'].astype(float)
+            mf_data['date'] = mf_data.index
+            all_mf[mf_name] = mf_data[mf_name]
+            all_mf['date'] = mf_data['date']
+
+        all_mf = all_mf[::-1]
+        all_mf.plot(x='date')
+        plt.title("Compare mutual funds")
+        plt.xlabel("Date")
+        plt.ylabel("NAV")
+        plt.show()
