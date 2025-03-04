@@ -3,7 +3,7 @@
 Python library for getting Mutual Funds data in India
 
 ![Python](https://img.shields.io/badge/python-v3.7+-blue.svg)
-[![Pypi](https://img.shields.io/badge/pypi-v2.8-green)](https://pypi.python.org/pypi/mftool)
+[![Pypi](https://img.shields.io/badge/pypi-v2.9-green)](https://pypi.python.org/pypi/mftool)
 ![Dependencies](https://img.shields.io/badge/dependencies-up%20to%20date-brightgreen.svg)
 ![License](https://img.shields.io/pypi/l/selenium-wire.svg)
 [![Documentation](https://img.shields.io/badge/Documantation-latest-brightgreen)](https://mftool.readthedocs.io/en/latest/)
