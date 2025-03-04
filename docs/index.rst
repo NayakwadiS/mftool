@@ -330,7 +330,7 @@ Methode gives us Profile data of all AMCs
 >>> print(amc_details)
 
 
-All AMC profiles
+Compare Funds
 -------------------------------------------------
 
 plot and Compare trend of mutual funds
