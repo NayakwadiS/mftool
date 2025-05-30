@@ -349,8 +349,6 @@ class Mftool:
             DESCRIPTION.
 
         """
-        # import pdb
-        # pdb.set_trace()
         if self.is_holiday():
             payload = {
                 "maturityType": 1,
@@ -389,12 +387,12 @@ class Mftool:
         """
         equity_cat=int(self.category_code.get("equity"))
         equity_subcat = self.get_subcategory_details(equity_cat)
-        scheme_performance=[]
+        scheme_performance={}
         for idx, subcat in enumerate(equity_subcat):
 
             fund_list=self.fetch_scheme_performance(equity_cat, subcat).get('data')
-            for idx,fund in enumerate(fund_list):
-                scheme_performance.append(fund)
+            for fund_idx,fund in enumerate(fund_list):
+                scheme_performance[fund['schemeName']]=fund
         
         return self.render_response(scheme_performance,as_json)
 
@@ -408,11 +406,11 @@ class Mftool:
         """
         debt_cat=int(self.category_code.get("debt"))
         debt_subcat = self.get_subcategory_details(debt_cat)
-        scheme_performance=[]
+        scheme_performance={}
         for idx, subcat in enumerate(debt_subcat):
             fund_list=self.fetch_scheme_performance(debt_cat, subcat).get('data')
-            for idx,fund in enumerate(fund_list):
-                scheme_performance.append(fund)
+            for fund_idx,fund in enumerate(fund_list):
+                scheme_performance[fund['schemeName']]=fund
         
         return self.render_response(scheme_performance,as_json)
     
@@ -427,11 +425,11 @@ class Mftool:
         """
         hybrid_cat=int(self.category_code.get("hybrid"))
         hybrid_subcat = self.get_subcategory_details(hybrid_cat)
-        scheme_performance=[]
+        scheme_performance={}
         for idx, subcat in enumerate(hybrid_subcat):
             fund_list=self.fetch_scheme_performance(hybrid_cat, subcat).get('data')
-            for idx,fund in enumerate(fund_list):
-                scheme_performance.append(fund)
+            for fund_idx,fund in enumerate(fund_list):
+                scheme_performance[fund['schemeName']]=fund
         
         return self.render_response(scheme_performance,as_json)
 
@@ -445,11 +443,11 @@ class Mftool:
         """
         solution_cat=int(self.category_code.get("solution"))
         solution_subcat = self.get_subcategory_details(solution_cat)
-        scheme_performance=[]
+        scheme_performance={}
         for idx, subcat in enumerate(solution_subcat):
             fund_list=self.fetch_scheme_performance(solution_cat, subcat).get('data')
-            for idx,fund in enumerate(fund_list):
-                scheme_performance.append(fund)
+            for fund_idx,fund in enumerate(fund_list):
+                scheme_performance[fund['schemeName']]=fund
         
         return self.render_response(scheme_performance,as_json)
 
@@ -463,12 +461,11 @@ class Mftool:
         """
         other_cat=int(self.category_code.get("other"))
         other_subcat = self.get_subcategory_details(other_cat)
-        scheme_performance=[]
+        scheme_performance={}
         for idx, subcat in enumerate(other_subcat):
             fund_list=self.fetch_scheme_performance(other_cat, subcat).get('data')
-
-            for idx,fund in enumerate(fund_list):
-                scheme_performance.append(fund)
+            for fund_idx,fund in enumerate(fund_list):
+                scheme_performance[fund['schemeName']]=fund
         
         return self.render_response(scheme_performance,as_json) 
 
