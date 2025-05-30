@@ -52,6 +52,10 @@ class Mftool:
         self._user_agent = self._const['user_agent']
         self._codes = self._const['codes']
         self._scheme_codes = self.get_scheme_codes().keys()
+        self.category_code=self._const["category_code"]
+        self.new_header=self._const['Headers']
+        self._subcategory_url=self._const['subcategory_url']
+        self._performance_url=self._const['performance_url']
 
     def set_proxy(self, proxy):
         """
@@ -305,71 +309,168 @@ class Mftool:
             return render_response(scheme_info, as_json, as_dataframe)
         else:
             return None
+        
+    def get_subcategory_details(self,category:int):
+        """
+        
+
+        Parameters
+        ----------
+        category : int
+            The category of the mutual funds namely 1-Equity, 2-Debt, 3-Hybrid, 4-Solution Oriented, 5-Other .
+
+
+        Returns
+        -------
+        subcategory_data : List(dict)
+            returns the list of dictionaries which has the subcategory ID and the name.
+
+        """
+        subcategory_payload = {"category": category}
+        subcategory_response = requests.post(self._subcategory_url, json=subcategory_payload, headers=self.new_header)
+        subcategory_data = subcategory_response.json()["data"]
+        
+        return subcategory_data
+
+    def fetch_scheme_performance(self,category:int,sub_category:dict):
+        """
+        
+
+        Parameters
+        ----------
+        category : int
+            the category of the mutual fund.
+        sub_category : dict
+            the subcategory of the mutual fund.
+
+        Returns
+        -------
+        data : TYPE
+            DESCRIPTION.
+
+        """
+        # import pdb
+        # pdb.set_trace()
+        if self.is_holiday():
+            payload = {
+                "maturityType": 1,
+                "category": category,
+                "subCategory": sub_category["id"],
+                "mfid": 0,
+                "reportDate": self.get_friday()
+            }
+
+        else:
+            payload = {
+                "maturityType": 1,
+                "category": category,
+                "subCategory": sub_category["id"],
+                "mfid": 0,
+                "reportDate": self.get_today()
+            }
+
+
+        response = requests.post(self._performance_url, json=payload, headers=self.new_header)
+        try:
+            data = response.json()
+            
+            return data
+
+        except Exception as e:
+            print(f"Error with SubCategory ID {sub_category['name']}: {e}")        
 
     def get_open_ended_equity_scheme_performance(self, as_json=False):
         """
+        version 2: uses an updated url to fetch the equity schemes performance
+            
         gets the daily performance of open-ended equity schemes for all AMCs
         :return: json format
         :raises: HTTPError, URLError
         """
-        scheme_performance = {}
-        for key in self._open_ended_equity_category.keys():
-            scheme_performance_url = self._get_open_ended_equity_scheme_url.replace('CAT', self._open_ended_equity_category[key])
-            scheme_performance[key] = self._get_daily_scheme_performance(scheme_performance_url)
-        return render_response(scheme_performance, as_json)
+        equity_cat=int(self.category_code.get("equity"))
+        equity_subcat = self.get_subcategory_details(equity_cat)
+        scheme_performance=[]
+        for idx, subcat in enumerate(equity_subcat):
+
+            fund_list=self.fetch_scheme_performance(equity_cat, subcat).get('data')
+            for idx,fund in enumerate(fund_list):
+                scheme_performance.append(fund)
+        
+        return self.render_response(scheme_performance,as_json)
 
     def get_open_ended_debt_scheme_performance(self, as_json=False):
         """
+        version 2: uses an updated url to fetch the debt schemes performance
+        
         gets the daily performance of open-ended debt schemes for all AMCs
         :return: json format
         :raises: HTTPError, URLError
         """
-        get_open_ended_debt_scheme_url = self._get_open_ended_equity_scheme_url.replace('SEQ', 'SDT')
-        scheme_performance = {}
-        for key in self._open_ended_debt_category.keys():
-            scheme_performance_url = get_open_ended_debt_scheme_url.replace('CAT', self._open_ended_debt_category[key])
-            scheme_performance[key] = self._get_daily_scheme_performance(scheme_performance_url)
-        return render_response(scheme_performance, as_json)
-
+        debt_cat=int(self.category_code.get("debt"))
+        debt_subcat = self.get_subcategory_details(debt_cat)
+        scheme_performance=[]
+        for idx, subcat in enumerate(debt_subcat):
+            fund_list=self.fetch_scheme_performance(debt_cat, subcat).get('data')
+            for idx,fund in enumerate(fund_list):
+                scheme_performance.append(fund)
+        
+        return self.render_response(scheme_performance,as_json)
+    
+    
     def get_open_ended_hybrid_scheme_performance(self, as_json=False):
         """
+        version 2: uses an updated url to fetch the Hybrid schemes performance
+        
         gets the daily performance of open-ended hybrid schemes for all AMCs
         :return: json format
         :raises: HTTPError, URLError
         """
-        get_open_ended_debt_scheme_url = self._get_open_ended_equity_scheme_url.replace('SEQ', 'SHY')
-        scheme_performance = {}
-        for key in self._open_ended_hybrid_category.keys():
-            scheme_performance_url = get_open_ended_debt_scheme_url.replace('CAT',self._open_ended_hybrid_category[key])
-            scheme_performance[key] = self._get_daily_scheme_performance(scheme_performance_url)
-        return render_response(scheme_performance, as_json)
+        hybrid_cat=int(self.category_code.get("hybrid"))
+        hybrid_subcat = self.get_subcategory_details(hybrid_cat)
+        scheme_performance=[]
+        for idx, subcat in enumerate(hybrid_subcat):
+            fund_list=self.fetch_scheme_performance(hybrid_cat, subcat).get('data')
+            for idx,fund in enumerate(fund_list):
+                scheme_performance.append(fund)
+        
+        return self.render_response(scheme_performance,as_json)
 
     def get_open_ended_solution_scheme_performance(self, as_json=False):
         """
+        version 2: uses an updated url to fetch the Solution schemes performance
+        
         gets the daily performance of open-ended Solution-Oriented schemes for all AMCs
         :return: json format
         :raises: HTTPError, URLError
         """
-        get_open_ended_solution_scheme_url = self._get_open_ended_equity_scheme_url.replace('SEQ', 'SSO')
-        scheme_performance = {}
-        for key in self._open_ended_solution_category.keys():
-            scheme_performance_url = get_open_ended_solution_scheme_url.replace('CAT',
-                                                                                self._open_ended_solution_category[key])
-            scheme_performance[key] = self._get_daily_scheme_performance(scheme_performance_url)
-        return render_response(scheme_performance, as_json)
+        solution_cat=int(self.category_code.get("solution"))
+        solution_subcat = self.get_subcategory_details(solution_cat)
+        scheme_performance=[]
+        for idx, subcat in enumerate(solution_subcat):
+            fund_list=self.fetch_scheme_performance(solution_cat, subcat).get('data')
+            for idx,fund in enumerate(fund_list):
+                scheme_performance.append(fund)
+        
+        return self.render_response(scheme_performance,as_json)
 
     def get_open_ended_other_scheme_performance(self, as_json=False):
         """
+        version 2: uses an updated url to fetch the Other schemes performance
+        
         gets the daily performance of open-ended index and FoF schemes for all AMCs
         :return: json format
         :raises: HTTPError, URLError
         """
-        get_open_ended_other_scheme_url = self._get_open_ended_equity_scheme_url.replace('SEQ', 'SOTH')
-        scheme_performance = {}
-        for key in self._open_ended_other_category.keys():
-            scheme_performance_url = get_open_ended_other_scheme_url.replace('CAT', self._open_ended_other_category[key])
-            scheme_performance[key] = self._get_daily_scheme_performance(scheme_performance_url)
-        return render_response(scheme_performance, as_json)
+        other_cat=int(self.category_code.get("other"))
+        other_subcat = self.get_subcategory_details(other_cat)
+        scheme_performance=[]
+        for idx, subcat in enumerate(other_subcat):
+            fund_list=self.fetch_scheme_performance(other_cat, subcat).get('data')
+
+            for idx,fund in enumerate(fund_list):
+                scheme_performance.append(fund)
+        
+        return self.render_response(scheme_performance,as_json) 
 
     def _get_daily_scheme_performance(self, performance_url, as_json=False):
         fund_performance = []
