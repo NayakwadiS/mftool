@@ -4,6 +4,15 @@
 	"get_amc_details_url": "https://www.amfiindia.com/modules/AMCProfileDetail",
 	"get_open_ended_equity_scheme_url": "http://www.valueresearchonline.com/amfi/fund-performance-data/?end-type=1&primary-category=SEQ&category=CAT&amc=ALL",
 	"get_avg_aum_url": "https://www.amfiindia.com/modules/AverageAUMDetails",
+	"Headers": {
+        "User-Agent": "Mozilla/5.0",
+        "Content-Type": "application/json",
+        "Referer": "https://polling.crisil.com/",
+        "Origin": "https://polling.crisil.com"
+        },
+	"subcategory_url" : "https://polling.crisil.com/gateway/pollingsebi/api/amfi/getsubcategory",
+    	"performance_url" : "https://polling.crisil.com/gateway/pollingsebi/api/amfi/fundperformance",
+    	"category_code":  {"equity":1,"debt":2,"hybrid":3,"solution":4,"other":5},
 	"user_agent": {
 		"User-Agent": "Chrome/95.0.4638.69"
 	},
