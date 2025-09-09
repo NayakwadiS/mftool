@@ -13,7 +13,7 @@ setup(
     description="Library for getting real time Mutual funds info",
     license="MIT",
     keywords="amfi, quote, mutual-funds, funds, bse, nse, market, stock, stocks",
-    install_requires=['requests', 'bs4', 'httpx', 'pandas', 'yfinance'],
+    install_requires=['requests', 'bs4', 'httpx', 'pandas', 'yfinance', 'matplotlib'],
     url="https://github.com/NayakwadiS/mftool",
     packages=find_packages(),
     long_description=long_description,
