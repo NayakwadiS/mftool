@@ -1,6 +1,6 @@
 """
     The MIT License (MIT)
-    Copyright (c) 2024 Sujit Nayakwadi
+    Copyright (c) 2025 Sujit Nayakwadi
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
     in the Software without restriction, including without limitation the rights
@@ -37,6 +37,7 @@ class Mftool:
     def __init__(self):
         self._session = requests.session()
         self._const = Utilities().values
+        self._old_scheme_codes = Utilities().schemes
         # URL list
         self._get_quote_url = self._const['get_quote_url']
         self._get_scheme_url = self._const['get_scheme_url']
@@ -51,7 +52,7 @@ class Mftool:
         self._amc=self._const['amc']
         self._user_agent = self._const['user_agent']
         self._codes = self._const['codes']
-        self._scheme_codes = self.get_scheme_codes().keys()
+        self._scheme_codes = self._old_scheme_codes.keys()
 
     def set_proxy(self, proxy):
         """
@@ -69,15 +70,14 @@ class Mftool:
         cache handled internally
         :return: dict / json
         """
-        scheme_info = {}
-        url = self._get_quote_url
-        response = self._session.get(url)
-        data = response.text.split("\n")
-        for scheme_data in data:
-            if ";" in scheme_data:
-                scheme = scheme_data.split(";")
-                scheme_info[scheme[0]] = scheme[3]
-        return render_response(scheme_info, as_json)
+        # url = self._get_quote_url
+        # response = self._session.get(url)
+        # data = response.text.split("\n")
+        # for scheme_data in data:
+        #     if ";" in scheme_data:
+        #         scheme = scheme_data.split(";")
+        #         scheme_info[scheme[0]] = scheme[3]
+        return render_response(self._old_scheme_codes, as_json)
 
     def get_available_schemes(self, amc_name):
         """
@@ -122,17 +122,14 @@ class Mftool:
         code = str(code)
         if self.is_valid_code(code):
             scheme_info = {}
-            url = self._get_quote_url
-            response = self._session.get(url)
-            data = response.text.split("\n")
-            for scheme_data in data:
-                if code in scheme_data:
-                    scheme = scheme_data.split(";")
-                    scheme_info['scheme_code'] = scheme[0]
-                    scheme_info['scheme_name'] = scheme[3]
-                    scheme_info['last_updated'] = scheme[5].replace("\r", "")
-                    scheme_info['nav'] = scheme[4]
-                    break
+            url = self._get_scheme_url + code
+            response = self._session.get(url).json()
+            scheme_data = response['meta']
+            nav_data = response['data'][0]
+            scheme_info['scheme_code'] = scheme_data['scheme_code']
+            scheme_info['scheme_name'] = scheme_data['scheme_name']
+            scheme_info['last_updated'] = nav_data['date']
+            scheme_info['nav'] = nav_data['nav']
             return render_response(scheme_info, as_json)
         else:
             return None
@@ -175,7 +172,6 @@ class Mftool:
             scheme_info = {}
             url = self._get_scheme_url + code
             response = self._session.get(url).json()
-
             scheme_data = response['meta']
             scheme_info['fund_house'] = scheme_data['fund_house']
             scheme_info['scheme_type'] = scheme_data['scheme_type']
