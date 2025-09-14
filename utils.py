@@ -39,5 +39,8 @@ class Utilities:
 
     def __init__(self):
         self._filepath = str(os.path.dirname(os.path.abspath(__file__))) + '/const.json'
+        self._scheme = str(os.path.dirname(os.path.abspath(__file__))) + '/codes.json'
         with open(self._filepath, 'r') as f:
             self.values = json.load(f)
+        with open(self._scheme, 'r') as f:
+            self.schemes = json.load(f)
