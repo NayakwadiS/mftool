@@ -17,6 +17,8 @@
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 """
+import json
+
 # -*- coding: UTF-8 -*-
 import requests
 import httpx
@@ -309,9 +311,9 @@ class Mftool:
         :raises: HTTPError, URLError
         """
         scheme_performance = {}
-        for key in self._open_ended_equity_category.keys():
-            scheme_performance_url = self._get_open_ended_equity_scheme_url.replace('CAT', self._open_ended_equity_category[key])
-            scheme_performance[key] = self._get_daily_scheme_performance(scheme_performance_url)
+        subCategory = self._open_ended_equity_category
+        for key in subCategory:
+            scheme_performance[subCategory[key]] = self._get_daily_scheme_performance(self._get_open_ended_equity_scheme_url,1, key)
         return render_response(scheme_performance, as_json)
 
     def get_open_ended_debt_scheme_performance(self, as_json=False):
@@ -320,11 +322,10 @@ class Mftool:
         :return: json format
         :raises: HTTPError, URLError
         """
-        get_open_ended_debt_scheme_url = self._get_open_ended_equity_scheme_url.replace('SEQ', 'SDT')
+        subCategory = self._open_ended_debt_category
         scheme_performance = {}
-        for key in self._open_ended_debt_category.keys():
-            scheme_performance_url = get_open_ended_debt_scheme_url.replace('CAT', self._open_ended_debt_category[key])
-            scheme_performance[key] = self._get_daily_scheme_performance(scheme_performance_url)
+        for key in subCategory:
+            scheme_performance[subCategory[key]] = self._get_daily_scheme_performance(self._get_open_ended_equity_scheme_url,2,key)
         return render_response(scheme_performance, as_json)
 
     def get_open_ended_hybrid_scheme_performance(self, as_json=False):
@@ -333,11 +334,11 @@ class Mftool:
         :return: json format
         :raises: HTTPError, URLError
         """
-        get_open_ended_debt_scheme_url = self._get_open_ended_equity_scheme_url.replace('SEQ', 'SHY')
+        subCategory = self._open_ended_hybrid_category
         scheme_performance = {}
-        for key in self._open_ended_hybrid_category.keys():
-            scheme_performance_url = get_open_ended_debt_scheme_url.replace('CAT',self._open_ended_hybrid_category[key])
-            scheme_performance[key] = self._get_daily_scheme_performance(scheme_performance_url)
+        for key in subCategory:
+            scheme_performance[subCategory[key]] = self._get_daily_scheme_performance(
+                self._get_open_ended_equity_scheme_url, 3, key)
         return render_response(scheme_performance, as_json)
 
     def get_open_ended_solution_scheme_performance(self, as_json=False):
@@ -346,12 +347,11 @@ class Mftool:
         :return: json format
         :raises: HTTPError, URLError
         """
-        get_open_ended_solution_scheme_url = self._get_open_ended_equity_scheme_url.replace('SEQ', 'SSO')
+        subCategory = self._open_ended_solution_category
         scheme_performance = {}
-        for key in self._open_ended_solution_category.keys():
-            scheme_performance_url = get_open_ended_solution_scheme_url.replace('CAT',
-                                                                                self._open_ended_solution_category[key])
-            scheme_performance[key] = self._get_daily_scheme_performance(scheme_performance_url)
+        for key in subCategory:
+            scheme_performance[subCategory[key]] = self._get_daily_scheme_performance(
+                self._get_open_ended_equity_scheme_url, 4, key)
         return render_response(scheme_performance, as_json)
 
     def get_open_ended_other_scheme_performance(self, as_json=False):
@@ -360,50 +360,37 @@ class Mftool:
         :return: json format
         :raises: HTTPError, URLError
         """
-        get_open_ended_other_scheme_url = self._get_open_ended_equity_scheme_url.replace('SEQ', 'SOTH')
+        subCategory = self._open_ended_other_category
         scheme_performance = {}
-        for key in self._open_ended_other_category.keys():
-            scheme_performance_url = get_open_ended_other_scheme_url.replace('CAT', self._open_ended_other_category[key])
-            scheme_performance[key] = self._get_daily_scheme_performance(scheme_performance_url)
+        for key in subCategory:
+            scheme_performance[subCategory[key]] = self._get_daily_scheme_performance(
+                self._get_open_ended_equity_scheme_url, 5, key)
         return render_response(scheme_performance, as_json)
 
-    def _get_daily_scheme_performance(self, performance_url, as_json=False):
+    def _get_daily_scheme_performance(self, performance_url,category,key, as_json=False):
         fund_performance = []
         if is_holiday():
-            url = performance_url + '&nav-date=' + get_friday()
+            reportDate = get_friday()
         else:
-            url = performance_url + '&nav-date=' + get_today()
-        # html = requests.get(url, headers=self._user_agent)
-        html = httpx.get(url, headers=self._user_agent,timeout=25)
-        soup = BeautifulSoup(html.text, 'html.parser')
-        rows = soup.select("table tbody tr")
+            reportDate = get_today()
         try:
-            for tr in rows:
-                scheme_details = {}
-                cols = tr.select("td.nav.text-right")
-                scheme_details['scheme_name'] = tr.select("td")[0].get_text()
-                scheme_details['benchmark'] = tr.select("td")[1].get_text()
-
-                scheme_details['latest NAV- Regular'] = tr.select("td")[2].get_text().strip()
-                scheme_details['latest NAV- Direct'] = tr.select("td")[3].get_text().strip()
-
-                regData = tr.find_all("td", recursive=False,class_="text-right period-return-reg", limit=1)
-                dirData = tr.find_all("td", recursive=False, class_="text-right period-return-dir", limit=1)
-
-                scheme_details['1-Year Return(%)- Regular'] = regData[0]['data-1y']
-                scheme_details['1-Year Return(%)- Direct'] = dirData[0]['data-1y']
-
-                scheme_details['3-Year Return(%)- Regular'] = regData[0]['data-3y']
-                scheme_details['3-Year Return(%)- Direct'] = dirData[0]['data-3y']
-
-                scheme_details['5-Year Return(%)- Regular'] = regData[0]['data-5y']
-                scheme_details['5-Year Return(%)- Direct'] = dirData[0]['data-5y']
-
-                fund_performance.append(scheme_details)
-
+            data = {"maturityType": 1,"category": category,"subCategory": int(key),"mfid": 0,"reportDate": reportDate}
+            html = httpx.post(performance_url,headers={"User-Agent":"Mozilla/5.0"},timeout=25, json=data)
+            result = html.json()['data']
+            scheme_details = {}
+            scheme_details['scheme_name'] = result['schemeName']
+            scheme_details['benchmark'] = result['benchmark']
+            scheme_details['latest NAV- Regular'] = result['navRegular']
+            scheme_details['latest NAV- Direct'] = result['navDirect']
+            scheme_details['1-Year Return(%)- Regular'] = result['return1YearRegular']
+            scheme_details['1-Year Return(%)- Direct'] = result['return1YearDirect']
+            scheme_details['3-Year Return(%)- Regular'] = result['return3YearRegular']
+            scheme_details['3-Year Return(%)- Direct'] = result['return3YearDirect']
+            scheme_details['5-Year Return(%)- Regular'] = result['return5YearRegular']
+            scheme_details['5-Year Return(%)- Direct'] = result['return5YearDirect']
+            fund_performance.append(scheme_details)
         except Exception:
             return render_response(['The underlying data is unavailable for Today'], as_json)
-
         return render_response(fund_performance, as_json)
 
     def get_all_amc_profiles(self, as_json=True):
@@ -537,4 +524,3 @@ class Mftool:
         plt.xlabel("Date")
         plt.ylabel("NAV")
         plt.show()
-
