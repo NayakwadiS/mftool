@@ -475,7 +475,7 @@ class Mftool:
         code = str(code)
         if self.is_code(code):
             def get_Dataframe(df, as_dataframe):
-                df = df.drop(columns=['Open', 'High', 'Low','Adj Close','Volume'])
+                df = df.drop(columns=['Open', 'High', 'Low','Volume'])
                 df = df.rename(columns={'Close': 'nav'})
                 df['dayChange'] = df['nav'].diff()
                 df = df.rename_axis('date')
@@ -537,3 +537,4 @@ class Mftool:
         plt.xlabel("Date")
         plt.ylabel("NAV")
         plt.show()
+
