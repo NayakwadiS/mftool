@@ -8,18 +8,18 @@
 		"User-Agent": "Chrome/95.0.4638.69"
 	},
 	"open_ended_equity_category": {
-            "1": "Large Cap",
-            "2": "Large & Mid Cap",
-            "3": "Flexi Cap",
-            "4": "Multi Cap",
-            "5": "Mid Cap",
-            "6": "Small Cap",
-            "7": "Value",
-            "8": "ELSS",
-            "9": "Contra",
-            "10": "Dividend Yield",
-            "11": "Focused",
-            "12": "Sectoral / Thematic"
+		"1": "Large Cap",
+		"2": "Large & Mid Cap",
+		"3": "Flexi Cap",
+		"4": "Multi Cap",
+		"5": "Mid Cap",
+		"6": "Small Cap",
+		"7": "Value",
+		"8": "ELSS",
+		"9": "Contra",
+		"10": "Dividend Yield",
+		"11": "Focused",
+		"12": "Sectoral / Thematic"
 	},
 	"open_ended_debt_category": {
 		"13":"Long Duration",
