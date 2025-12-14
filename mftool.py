@@ -34,8 +34,13 @@ class Mftool:
     class which implements all the functionality for
     Mutual Funds in India
     """
-    def __init__(self):
+    def __init__(self, verify: bool | str = True):
+        """
+        :param verify: bool or str, passed to requests.Session.verify to control SSL verification.
+                       True (default) verifies SSL certs, False disables verification.
+        """
         self._session = requests.session()
+        self._session.verify = verify
         self._const = Utilities().values
         # URL list
         self._get_quote_url = self._const['get_quote_url']
