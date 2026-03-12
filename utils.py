@@ -22,6 +22,10 @@ def get_today():
     return (date.today() - timedelta(days=1)).strftime("%d-%b-%Y")
 
 
+def get_52_week_friday():
+    return (date.today() - timedelta(days=365)).strftime("%d-%m-%Y")
+
+
 def render_response(data, as_json=False, as_Dataframe=False):
     if as_json is True:
         return json.dumps(data)
@@ -39,8 +43,5 @@ class Utilities:
 
     def __init__(self):
         self._filepath = str(os.path.dirname(os.path.abspath(__file__))) + '/const.json'
-        # self._scheme = str(os.path.dirname(os.path.abspath(__file__))) + '/codes.json'
         with open(self._filepath, 'r') as f:
             self.values = json.load(f)
-        # with open(self._scheme, 'r') as f:
-        #     self.schemes = json.load(f)
