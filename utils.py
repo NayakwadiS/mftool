@@ -23,7 +23,7 @@ def get_today():
 
 
 def get_52_week_friday():
-    return (date.today() - timedelta(days=365)).strftime("%d-%m-%Y")
+    return (date.today() - timedelta(weeks=52)).strftime("%d-%m-%Y")
 
 
 def render_response(data, as_json=False, as_Dataframe=False):
