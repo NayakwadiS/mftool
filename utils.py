@@ -26,6 +26,15 @@ def get_52_week_friday():
     return (date.today() - timedelta(weeks=52)).strftime("%d-%m-%Y")
 
 
+def get_52_week_high_low(data):
+    friday = pd.to_datetime(get_52_week_friday(), dayfirst=True)
+    df = pd.DataFrame.from_records(data)
+    df['date'] = pd.to_datetime(df['date'], dayfirst=True)
+    df_high = df[df['date'] >= friday].sort_values(by='nav', ascending=False).head(1)
+    df_low = df[df['date'] >= friday].sort_values(by='nav', ascending=True).head(1)
+    return {"52_week_high": df_high['nav'].values[0], "52_week_low": df_low['nav'].values[0]}
+
+
 def render_response(data, as_json=False, as_Dataframe=False):
     if as_json is True:
         return json.dumps(data)
