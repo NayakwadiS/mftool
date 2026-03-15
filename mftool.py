@@ -25,7 +25,7 @@ import yfinance as yf
 import datetime
 from deprecated import deprecated
 from matplotlib import pyplot as plt
-from .utils import Utilities, is_holiday, get_today, get_friday, render_response, get_52_week_friday
+from .utils import Utilities, is_holiday, get_today, get_friday, render_response, get_52_week_friday, get_52_week_high_low
 import pandas as pd
 
 
@@ -182,7 +182,7 @@ class Mftool:
             scheme_info['scheme_code'] = scheme_data['scheme_code']
             scheme_info['scheme_name'] = scheme_data['scheme_name']
             scheme_info['scheme_start_date'] = response['data'][int(len(response['data']) - 1)]
-            result = self.get_52_week_high_low(response['data'])
+            result = get_52_week_high_low(response['data'])
             scheme_info['52_week_high'] = result['52_week_high']
             scheme_info['52_week_low'] = result['52_week_low']
             if response['data']:
@@ -193,13 +193,7 @@ class Mftool:
         else:
             return None
 
-    def get_52_week_high_low(self, data):
-        friday = pd.to_datetime(get_52_week_friday())
-        df = pd.DataFrame.from_records(data)
-        df['date'] = pd.to_datetime(df['date'], dayfirst=True)
-        df_high = df[df['date'] >= friday].sort_values(by='nav', ascending=False).head(1)
-        df_low = df[df['date'] >= friday].sort_values(by='nav', ascending=True).head(1)
-        return {"52_week_high": df_high['nav'].values[0], "52_week_low": df_low['nav'].values[0]}
+
 
     def calculate_balance_units_value(self, code, balance_units, as_json=False):
         """
