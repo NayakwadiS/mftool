@@ -33,6 +33,7 @@ Related Projects -
 1. NSE Stock predictions *[NSE-Neuron](https://github.com/NayakwadiS/NSE-Neuron)*
 2. Forecasting of Mutual Funds *[here](https://github.com/NayakwadiS/Forecasting_Mutual_Funds)*
 3. Predict Cryptocurrency in Indian Rupees *[here](https://github.com/NayakwadiS/Predict_Cryptocurrency_INR)*
+4. MCP server for GenAI apps *[mftool-mcp](https://github.com/NayakwadiS/mftool-mcp)*
 
 <a href="https://www.buymeacoffee.com/nayakwadis" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="29" width="174">
 </a>
