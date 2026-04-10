@@ -11,6 +11,10 @@ Github Project Page
 
 https://github.com/NayakwadiS/mftool
 
+MCP for LLM Apps 
+===================
+
+MCP server for GenAI apps *[mftool-mcp](https://github.com/NayakwadiS/mftool-mcp)*
 
 Main Features
 =============
@@ -342,13 +346,15 @@ plot and Compare trend of mutual funds
 
 Related Projects
 ===================
-1. Forecasting Mutual Funds -
+1. NSE Stock predictions 
+	https://github.com/NayakwadiS/NSE-Neuron
+
+2. Forecasting Mutual Funds -
 	https://github.com/NayakwadiS/Forecasting_Mutual_Funds
 	
-2. Predict Cryptocurrency in Indian Rupee-
+3. Predict Cryptocurrency in Indian Rupee-
 	https://github.com/NayakwadiS/Predict_Cryptocurrency_INR
 
 
 .. disqus::
-
 
