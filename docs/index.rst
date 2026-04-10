@@ -11,10 +11,10 @@ Github Project Page
 
 https://github.com/NayakwadiS/mftool
 
-MCP for LLM Apps 
+LLM MCP
 ===================
 
-MCP server for GenAI apps *[mftool-mcp](https://github.com/NayakwadiS/mftool-mcp)*
+MCP server for GenAI apps mftool-mcp https://github.com/NayakwadiS/mftool-mcp
 
 Main Features
 =============
