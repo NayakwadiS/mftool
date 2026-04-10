@@ -18,4 +18,4 @@ html_favicon = 'mftool.png'
 html_static_path = ['_static']
 
 def setup(app):
-    app.add_css_file('css/custom.css?v20260402')
+    app.add_css_file('css/custom.css?v20260410')
