@@ -28,6 +28,8 @@ from matplotlib import pyplot as plt
 from .utils import Utilities, is_holiday, get_today, get_friday, render_response, get_52_week_high_low
 from .cache import CacheManager
 import pandas as pd
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import List, Dict, Union
 
 
 class Mftool:
@@ -164,6 +166,82 @@ class Mftool:
             return result
         else:
             return None
+
+    def get_bulk_quotes(self, scheme_codes: List[Union[str, int]], as_json=False,
+                       max_workers=10, show_progress=False) -> Dict[str, Union[dict, None]]:
+        """
+        Fetch quotes for multiple schemes concurrently for better performance.
+        Perfect for portfolio-level operations.
+
+        :param scheme_codes: List of scheme codes to fetch
+        :param as_json: Return data in JSON format (default: False)
+        :param max_workers: Maximum number of concurrent threads (default: 10)
+        :param show_progress: Print progress during fetching (default: False)
+        :return: Dictionary with scheme codes as keys and quote data as values
+        :raises: HTTPError, URLError
+
+        Example:
+            >>> mf = Mftool()
+            >>> codes = ['119597', '119062', '119061']
+            >>> quotes = mf.get_bulk_quotes(codes)
+            >>> print(quotes['119597']['nav'])
+        """
+        # Validate all codes first
+        valid_codes = []
+        invalid_codes = []
+
+        for code in scheme_codes:
+            code = str(code)
+            if self.is_valid_code(code):
+                valid_codes.append(code)
+            else:
+                invalid_codes.append(code)
+
+        if invalid_codes and show_progress:
+            print(f"Warning: {len(invalid_codes)} invalid scheme codes found: {invalid_codes[:5]}")
+
+        results = {}
+
+        # Check cache first for all codes
+        uncached_codes = []
+        for code in valid_codes:
+            cache_key = f"quote:{code}:{as_json}"
+            cached_result = self._cache.get(cache_key)
+            if cached_result is not None:
+                results[code] = cached_result
+            else:
+                uncached_codes.append(code)
+
+        if show_progress:
+            print(f"Fetching {len(uncached_codes)} quotes ({len(results)} from cache)...")
+
+        # Fetch uncached quotes concurrently
+        if uncached_codes:
+            def fetch_single_quote(code):
+                try:
+                    quote = self.get_scheme_quote(code, as_json=as_json)
+                    return code, quote
+                except Exception as e:
+                    if show_progress:
+                        print(f"Error fetching {code}: {str(e)[:50]}")
+                    return code, None
+
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                futures = {executor.submit(fetch_single_quote, code): code for code in uncached_codes}
+
+                completed = 0
+                for future in as_completed(futures):
+                    code, quote = future.result()
+                    results[code] = quote
+                    completed += 1
+
+                    if show_progress and completed % 10 == 0:
+                        print(f"Progress: {completed}/{len(uncached_codes)} completed")
+
+        if show_progress:
+            print(f"✓ Fetched {len(results)} quotes successfully")
+
+        return results
 
     def get_scheme_details(self, code, as_json=False):
         """
@@ -600,3 +678,65 @@ class Mftool:
         """
         self._cache.enable()
         self._scheme_codes_cache.enable()
+
+    def calculate_portfolio_value(self, holdings: List[Dict[str, Union[str, float]]],
+                                  as_json=False) -> Dict[str, Union[float, dict]]:
+        """
+        Calculate total portfolio value for multiple holdings concurrently.
+
+        :param holdings: List of dicts with 'scheme_code' and 'units' keys
+        :param as_json: Return data in JSON format (default: False)
+        :return: Dictionary with portfolio summary
+
+        Example:
+            >>> holdings = [
+            ...     {'scheme_code': '119597', 'units': 100},
+            ...     {'scheme_code': '119062', 'units': 50}
+            ... ]
+            >>> portfolio = mf.calculate_portfolio_value(holdings)
+            >>> print(f"Total value: {portfolio['total_value']}")
+        """
+        scheme_codes = [str(h['scheme_code']) for h in holdings]
+
+        # Fetch all quotes concurrently
+        quotes = self.get_bulk_quotes(scheme_codes, as_json=False)
+
+        portfolio_data = []
+        total_value = 0.0
+
+        for holding in holdings:
+            code = str(holding['scheme_code'])
+            units = float(holding['units'])
+
+            quote = quotes.get(code)
+            if quote and 'nav' in quote:
+                nav = float(quote['nav'])
+                value = units * nav
+                total_value += value
+
+                portfolio_data.append({
+                    'scheme_code': code,
+                    'scheme_name': quote.get('scheme_name', 'N/A'),
+                    'units': units,
+                    'nav': nav,
+                    'current_value': round(value, 2),
+                    'last_updated': quote.get('last_updated', 'N/A')
+                })
+            else:
+                portfolio_data.append({
+                    'scheme_code': code,
+                    'scheme_name': 'Error fetching data',
+                    'units': units,
+                    'nav': 0,
+                    'current_value': 0,
+                    'last_updated': 'N/A'
+                })
+
+        result = {
+            'total_value': round(total_value, 2),
+            'total_schemes': len(holdings),
+            'holdings': portfolio_data,
+            'currency': 'INR'
+        }
+
+        return render_response(result, as_json)
