@@ -172,12 +172,12 @@ if __name__ == "__main__":
         test_caching_performance()
         test_multiple_schemes()
 
-        print("\n✅ All tests completed successfully!")
+        print("\nAll tests completed successfully!")
         print("\nNote: For best results, ensure you have internet connectivity")
         print("and the AMFI API is accessible.")
 
     except KeyboardInterrupt:
-        print("\n\n⚠️  Tests interrupted by user")
+        print("\n\n  Tests interrupted by user")
     except Exception as e:
-        print(f"\n\n❌ Error during testing: {str(e)}")
+        print(f"\n\n Error during testing: {str(e)}")
         print("This may be due to network issues or invalid scheme codes")

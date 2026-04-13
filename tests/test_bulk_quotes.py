@@ -119,39 +119,6 @@ def test_portfolio_calculation():
         print(f"  NAV:   ₹{holding['nav']}")
         print(f"  Value: ₹{holding['current_value']:,.2f}")
 
-
-def test_bulk_details():
-    """Demonstrate bulk details fetching"""
-
-    print("\n\n" + "=" * 70)
-    print("BULK SCHEME DETAILS FETCHING")
-    print("=" * 70)
-
-    mf = Mftool()
-
-    codes = ['119597', '119062', '119061', '119060', '119551']
-
-    print(f"\nFetching details for {len(codes)} schemes...")
-    print("-" * 70)
-
-    start = time.time()
-    details = mf.get_bulk_details(codes, show_progress=True)
-    fetch_time = time.time() - start
-
-    print(f"\n✓ Fetched {len(details)} scheme details in {fetch_time:.2f}s")
-
-    print("\nSample Details:")
-    print("-" * 70)
-    for code in list(details.keys())[:3]:
-        detail = details[code]
-        if detail:
-            print(f"\n{code}:")
-            print(f"  Name:     {detail.get('scheme_name', 'N/A')[:50]}")
-            print(f"  Fund:     {detail.get('fund_house', 'N/A')}")
-            print(f"  Type:     {detail.get('scheme_type', 'N/A')}")
-            print(f"  Category: {detail.get('scheme_category', 'N/A')}")
-
-
 def test_with_caching():
     """Demonstrate how caching improves bulk fetching even more"""
 
@@ -179,18 +146,20 @@ def test_with_caching():
     time2 = time.time() - start
     print(f"Time: {time2:.2f}s")
 
-    print(f"\n✓ Second run {time1/time2 if time2 > 0 else 'instantly':.1f}x faster with cache!")
+    if time2 > 0:
+        print(f"\n✓ Second run {time1/time2:.1f}x faster with cache!")
+    else:
+        print(f"\n✓ Second run instantly faster with cache!")
 
 
 if __name__ == "__main__":
     try:
         test_bulk_quotes()
         test_portfolio_calculation()
-        test_bulk_details()
         test_with_caching()
 
         print("\n\n" + "=" * 70)
-        print("✅ ALL BULK FETCHING TESTS COMPLETED!")
+        print("ALL BULK FETCHING TESTS COMPLETED!")
         print("=" * 70)
         print("\nKey Benefits:")
         print("• 5-10x faster for portfolio operations")
@@ -200,9 +169,8 @@ if __name__ == "__main__":
         print("• Perfect for portfolio management tools")
 
     except KeyboardInterrupt:
-        print("\n\n⚠️  Tests interrupted by user")
+        print("\n\n  Tests interrupted by user")
     except Exception as e:
-        print(f"\n\n❌ Error during testing: {str(e)}")
+        print(f"\n\n Error during testing: {str(e)}")
         import traceback
         traceback.print_exc()
-

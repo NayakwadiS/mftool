@@ -230,7 +230,7 @@ if __name__ == "__main__":
         test_fuzzy_matching()
 
         print("\n\n" + "=" * 70)
-        print("✅ ALL SEARCH TESTS COMPLETED!")
+        print("ALL SEARCH TESTS COMPLETED!")
         print("=" * 70)
         print("\nKey Benefits:")
         print("• No need to know scheme codes")
@@ -240,9 +240,9 @@ if __name__ == "__main__":
         print("• Works seamlessly with existing methods")
 
     except KeyboardInterrupt:
-        print("\n\n⚠️  Tests interrupted by user")
+        print("\n\n Tests interrupted by user")
     except Exception as e:
-        print(f"\n\n❌ Error during testing: {str(e)}")
+        print(f"\n\n Error during testing: {str(e)}")
         import traceback
         traceback.print_exc()
 
