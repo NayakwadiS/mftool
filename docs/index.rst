@@ -84,6 +84,47 @@ instantiating it requires no contructor arguments.
 Driver Class for The Association of Mutual Funds in India (AMFI)
 
 
+Search Schemes by Name
+----------------------
+
+Find mutual fund schemes without knowing the exact code. Perfect for LLM/AI applications.
+
+**Basic Search**
+
+>>> # Search for any scheme by name
+>>> results = mf.search_schemes("HDFC midcap")
+>>> for scheme in results:
+...     print(f"{scheme['code']}: {scheme['name']}")
+
+**Search by AMC (Fund House)**
+
+>>> # Get HDFC equity schemes
+>>> hdfc_equity = mf.search_schemes_by_amc("HDFC", "equity", limit=5)
+>>>
+>>> # Get all SBI schemes
+>>> sbi_schemes = mf.search_schemes_by_amc("SBI", limit=10)
+
+**Search by Type**
+
+>>> # Find all ELSS (tax-saving) schemes
+>>> elss = mf.search_schemes_by_type("elss", limit=10)
+>>>
+>>> # Find HDFC ELSS schemes
+>>> hdfc_elss = mf.search_schemes_by_type("elss", "hdfc")
+
+**Then use the code to get data:**
+
+>>> # Get scheme code from search
+>>> matches = mf.search_schemes("Axis bluechip", limit=1)
+>>> code = matches[0]['code'] if matches else None
+>>>
+>>> # Use code to get quote
+>>> quote = mf.get_scheme_quote(code)
+
+.. tip::
+    Search is case-insensitive and uses fuzzy matching. Results are sorted by relevance.
+
+
 Get Available Schems
 --------------------
 

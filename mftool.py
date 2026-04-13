@@ -243,6 +243,197 @@ class Mftool:
 
         return results
 
+    def search_schemes(self, search_term: str, limit: int = 10, as_json=False) -> Union[List[Dict[str, str]], str]:
+        """
+        Search for mutual fund schemes by name using fuzzy matching.
+        Makes it easy to find schemes without knowing exact codes.
+
+        :param search_term: Name or partial name to search for (case-insensitive)
+        :param limit: Maximum number of results to return (default: 10, use 0 for all)
+        :param as_json: Return data in JSON format (default: False)
+        :return: List of matching schemes with code and name
+
+        Example:
+            >>> mf = Mftool()
+            >>> results = mf.search_schemes("HDFC midcap")
+            >>> for scheme in results:
+            ...     print(f"{scheme['code']}: {scheme['name']}")
+
+            >>> # Get scheme code for first match
+            >>> matches = mf.search_schemes("Axis bluechip", limit=1)
+            >>> code = matches[0]['code'] if matches else None
+        """
+        search_term = search_term.lower().strip()
+
+        if not search_term:
+            return render_response([], as_json)
+
+        # Get all scheme codes and names
+        all_schemes = self.get_scheme_codes(as_json=False)
+
+        # Search for matches
+        matches = []
+        for code, name in all_schemes.items():
+            name_lower = name.lower()
+
+            # Check if search term is in the scheme name
+            if search_term in name_lower:
+                # Calculate relevance score (lower is better)
+                # Exact matches get highest priority
+                if name_lower == search_term:
+                    score = 0
+                # Matches at the start of the name get high priority
+                elif name_lower.startswith(search_term):
+                    score = 1
+                # Matches of whole words get medium priority
+                elif f" {search_term} " in f" {name_lower} ":
+                    score = 2
+                # Partial matches get lower priority
+                else:
+                    score = 3
+
+                matches.append({
+                    'code': code,
+                    'name': name,
+                    'score': score
+                })
+
+        # Sort by relevance (score) and then alphabetically by name
+        matches.sort(key=lambda x: (x['score'], x['name']))
+
+        # Remove score from results
+        results = [{'code': m['code'], 'name': m['name']} for m in matches]
+
+        # Apply limit if specified
+        if limit > 0:
+            results = results[:limit]
+
+        return render_response(results, as_json)
+
+    def search_schemes_by_amc(self, amc_name: str, search_term: str = "",
+                             limit: int = 10, as_json=False) -> Union[List[Dict[str, str]], str]:
+        """
+        Search for schemes within a specific AMC (fund house).
+
+        :param amc_name: Name of AMC (e.g., "HDFC", "ICICI", "Axis")
+        :param search_term: Optional search term to filter schemes within the AMC
+        :param limit: Maximum number of results to return (default: 10, use 0 for all)
+        :param as_json: Return data in JSON format (default: False)
+        :return: List of matching schemes with code and name
+
+        Example:
+            >>> mf = Mftool()
+            >>> # Get all HDFC schemes
+            >>> hdfc_schemes = mf.search_schemes_by_amc("HDFC")
+            >>>
+            >>> # Get HDFC midcap schemes
+            >>> hdfc_midcap = mf.search_schemes_by_amc("HDFC", "midcap")
+        """
+        # Get all schemes from the AMC
+        amc_schemes = self.get_available_schemes(amc_name)
+
+        # If no search term, return AMC schemes
+        if not search_term:
+            results = [{'code': code, 'name': name} for code, name in amc_schemes.items()]
+            if limit > 0:
+                results = results[:limit]
+            return render_response(results, as_json)
+
+        # Filter by search term
+        search_term = search_term.lower().strip()
+        matches = []
+
+        for code, name in amc_schemes.items():
+            name_lower = name.lower()
+            if search_term in name_lower:
+                # Calculate relevance score
+                if name_lower == search_term:
+                    score = 0
+                elif name_lower.startswith(search_term):
+                    score = 1
+                elif f" {search_term} " in f" {name_lower} ":
+                    score = 2
+                else:
+                    score = 3
+
+                matches.append({
+                    'code': code,
+                    'name': name,
+                    'score': score
+                })
+
+        # Sort by relevance
+        matches.sort(key=lambda x: (x['score'], x['name']))
+
+        # Remove score and apply limit
+        results = [{'code': m['code'], 'name': m['name']} for m in matches]
+        if limit > 0:
+            results = results[:limit]
+
+        return render_response(results, as_json)
+
+    def search_schemes_by_type(self, scheme_type: str, search_term: str = "",
+                               limit: int = 10, as_json=False) -> Union[List[Dict[str, str]], str]:
+        """
+        Search for schemes by type/category (Equity, Debt, Hybrid, etc.).
+
+        :param scheme_type: Type keywords like "equity", "debt", "hybrid", "elss", "index", "liquid"
+        :param search_term: Optional additional search term
+        :param limit: Maximum number of results (default: 10, use 0 for all)
+        :param as_json: Return data in JSON format (default: False)
+        :return: List of matching schemes with code and name
+
+        Example:
+            >>> mf = Mftool()
+            >>> # Find all ELSS schemes
+            >>> elss = mf.search_schemes_by_type("elss")
+            >>>
+            >>> # Find HDFC ELSS schemes
+            >>> hdfc_elss = mf.search_schemes_by_type("elss", "hdfc")
+        """
+        all_schemes = self.get_scheme_codes(as_json=False)
+        scheme_type = scheme_type.lower().strip()
+        search_term = search_term.lower().strip() if search_term else ""
+
+        matches = []
+        for code, name in all_schemes.items():
+            name_lower = name.lower()
+
+            # Check if scheme type is in the name
+            if scheme_type in name_lower:
+                # If search term provided, check if it's also in the name
+                if search_term and search_term not in name_lower:
+                    continue
+
+                # Calculate relevance score
+                score = 0
+                if search_term:
+                    # Both type and search term match
+                    if scheme_type in name_lower and search_term in name_lower:
+                        score = 1
+                else:
+                    # Only type matches
+                    if name_lower.startswith(scheme_type):
+                        score = 2
+                    else:
+                        score = 3
+
+                matches.append({
+                    'code': code,
+                    'name': name,
+                    'score': score
+                })
+
+        # Sort by relevance
+        matches.sort(key=lambda x: (x['score'], x['name']))
+
+        # Remove score and apply limit
+        results = [{'code': m['code'], 'name': m['name']} for m in matches]
+        if limit > 0:
+            results = results[:limit]
+
+        return render_response(results, as_json)
+
     def get_scheme_details(self, code, as_json=False):
         """
         gets the scheme info for a given scheme code
