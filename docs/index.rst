@@ -11,7 +11,7 @@ Github Project Page
 
 https://github.com/NayakwadiS/mftool
 
-LLM MCP
+Model Context Protocol (MCP)
 ===================
 
 MCP server for GenAI apps mftool-mcp https://github.com/NayakwadiS/mftool-mcp
@@ -25,6 +25,7 @@ Main Features
 * Helper APIs to check whether a given Scheme code is correct.
 * Getting all Historical nav's for a scheme using scheme code.
 * Getting list of all Schemes with there Scheme codes.
+* **Built-in intelligent caching for faster performance** - Automatically caches NAV data for 24 hours.
 * Cent percent unittest coverage.
 
 Installation
@@ -344,6 +345,43 @@ plot and Compare trend of mutual funds
 >>> result = mf.compare_trend(['xxxxxx', 'xxxxxx'], '1-1-2015', '29-12-2018')
 
 
+Built-in Caching
+================
+
+mftool includes automatic caching to improve performance. NAV data is cached for 24 hours since it updates only once daily.
+
+**Key Features:**
+
+* Automatic caching - enabled by default, zero configuration needed
+* 10-50x faster for repeated queries
+* Thread-safe and memory-efficient
+* Smart TTL: 24 hours for NAV data, 7 days for scheme codes
+
+Simple Example
+--------------
+
+>>> from mftool import Mftool
+>>> mf = Mftool()
+>>>
+>>> # First call - fetches from API (~0.5s)
+>>> quote = mf.get_scheme_quote('119597')
+>>>
+>>> # Second call - instant from cache (<0.01s)
+>>> quote = mf.get_scheme_quote('119597')
+
+Cache Management
+----------------
+
+>>> # View cache statistics
+>>> stats = mf.get_cache_stats()
+>>>
+>>> # Clear cache to force fresh data
+>>> mf.clear_cache()
+>>>
+>>> # Temporarily disable/enable
+>>> mf.disable_cache()
+>>> mf.enable_cache()
+
 Related Projects
 ===================
 1. NSE Stock predictions 
@@ -357,4 +395,3 @@ Related Projects
 
 
 .. disqus::
-

@@ -25,7 +25,8 @@ import yfinance as yf
 import datetime
 from deprecated import deprecated
 from matplotlib import pyplot as plt
-from .utils import Utilities, is_holiday, get_today, get_friday, render_response, get_52_week_friday, get_52_week_high_low
+from .utils import Utilities, is_holiday, get_today, get_friday, render_response, get_52_week_high_low
+from .cache import CacheManager
 import pandas as pd
 
 
@@ -51,6 +52,13 @@ class Mftool:
         self._amc=self._const['amc']
         self._user_agent = self._const['user_agent']
         self._codes = self._const['codes']
+
+        # Initialize caching layer
+        # NAV data: 24 hours TTL (86400 seconds) - updates once daily
+        self._cache = CacheManager(default_ttl=86400)
+        # Scheme codes: 7 days TTL - rarely changes
+        self._scheme_codes_cache = CacheManager(default_ttl=604800)
+
         self._scheme_codes = self.get_scheme_codes().keys()
 
     def set_proxy(self, proxy):
@@ -69,6 +77,12 @@ class Mftool:
         cache handled internally
         :return: dict / json
         """
+        # Try to get from cache first
+        cache_key = f"scheme_codes:{as_json}"
+        cached_result = self._scheme_codes_cache.get(cache_key)
+        if cached_result is not None:
+            return cached_result
+
         scheme_info = {}
         url = self._get_quote_url
         response = self._session.get(url)
@@ -77,7 +91,11 @@ class Mftool:
             if ";" in scheme_data:
                 scheme = scheme_data.split(";")
                 scheme_info[scheme[0]] = scheme[3]
-        return render_response(scheme_info, as_json)
+
+        result = render_response(scheme_info, as_json)
+        # Cache the result
+        self._scheme_codes_cache.set(cache_key, result)
+        return result
 
     def get_available_schemes(self, amc_name):
         """
@@ -121,6 +139,12 @@ class Mftool:
         """
         code = str(code)
         if self.is_valid_code(code):
+            # Try to get from cache first
+            cache_key = f"quote:{code}:{as_json}"
+            cached_result = self._cache.get(cache_key)
+            if cached_result is not None:
+                return cached_result
+
             scheme_info = {}
             url = self._get_quote_url
             response = self._session.get(url)
@@ -133,7 +157,11 @@ class Mftool:
                     scheme_info['last_updated'] = scheme[5].replace("\r", "")
                     scheme_info['nav'] = scheme[4]
                     break
-            return render_response(scheme_info, as_json)
+
+            result = render_response(scheme_info, as_json)
+            # Cache the result
+            self._cache.set(cache_key, result)
+            return result
         else:
             return None
 
@@ -147,17 +175,34 @@ class Mftool:
         """
         code = str(code)
         if self.is_valid_code(code):
-            scheme_info = {}
-            url = self._get_scheme_url + code
-            response = self._session.get(url).json()
-            scheme_data = response['meta']
-            scheme_info['fund_house'] = scheme_data['fund_house']
-            scheme_info['scheme_type'] = scheme_data['scheme_type']
-            scheme_info['scheme_category'] = scheme_data['scheme_category']
-            scheme_info['scheme_code'] = scheme_data['scheme_code']
-            scheme_info['scheme_name'] = scheme_data['scheme_name']
-            scheme_info['scheme_start_date'] = response['data'][int(len(response['data']) -1)]
-            return render_response(scheme_info, as_json)
+            # Try to get from cache first
+            cache_key = f"details:{code}:{as_json}"
+            cached_result = self._cache.get(cache_key)
+            if cached_result is not None:
+                return cached_result
+
+            try:
+                scheme_info = {}
+                url = self._get_scheme_url + code
+                response = self._session.get(url)
+                response.raise_for_status()  # Raise exception for bad status codes
+                response_data = response.json()
+
+                scheme_data = response_data['meta']
+                scheme_info['fund_house'] = scheme_data['fund_house']
+                scheme_info['scheme_type'] = scheme_data['scheme_type']
+                scheme_info['scheme_category'] = scheme_data['scheme_category']
+                scheme_info['scheme_code'] = scheme_data['scheme_code']
+                scheme_info['scheme_name'] = scheme_data['scheme_name']
+                scheme_info['scheme_start_date'] = response_data['data'][int(len(response_data['data']) -1)]
+
+                result = render_response(scheme_info, as_json)
+                # Cache the result
+                self._cache.set(cache_key, result)
+                return result
+            except Exception as e:
+                # Return None on error, don't cache errors
+                return None
         else:
             return None
 
@@ -172,24 +217,41 @@ class Mftool:
         """
         code = str(code)
         if self.is_valid_code(code):
-            scheme_info = {}
-            url = self._get_scheme_url + code
-            response = self._session.get(url).json()
-            scheme_data = response['meta']
-            scheme_info['fund_house'] = scheme_data['fund_house']
-            scheme_info['scheme_type'] = scheme_data['scheme_type']
-            scheme_info['scheme_category'] = scheme_data['scheme_category']
-            scheme_info['scheme_code'] = scheme_data['scheme_code']
-            scheme_info['scheme_name'] = scheme_data['scheme_name']
-            scheme_info['scheme_start_date'] = response['data'][int(len(response['data']) - 1)]
-            result = get_52_week_high_low(response['data'])
-            scheme_info['52_week_high'] = result['52_week_high']
-            scheme_info['52_week_low'] = result['52_week_low']
-            if response['data']:
-                scheme_info['data'] = response['data']
-            else:
-                scheme_info['data'] = "Underlying data not available"
-            return render_response(scheme_info, as_json,as_Dataframe)
+            # Try to get from cache first
+            cache_key = f"historical:{code}:{as_json}:{as_Dataframe}"
+            cached_result = self._cache.get(cache_key)
+            if cached_result is not None:
+                return cached_result
+
+            try:
+                scheme_info = {}
+                url = self._get_scheme_url + code
+                response = self._session.get(url)
+                response.raise_for_status()  # Raise exception for bad status codes
+                response_data = response.json()
+
+                scheme_data = response_data['meta']
+                scheme_info['fund_house'] = scheme_data['fund_house']
+                scheme_info['scheme_type'] = scheme_data['scheme_type']
+                scheme_info['scheme_category'] = scheme_data['scheme_category']
+                scheme_info['scheme_code'] = scheme_data['scheme_code']
+                scheme_info['scheme_name'] = scheme_data['scheme_name']
+                scheme_info['scheme_start_date'] = response_data['data'][int(len(response_data['data']) - 1)]
+                result = get_52_week_high_low(response_data['data'])
+                scheme_info['52_week_high'] = result['52_week_high']
+                scheme_info['52_week_low'] = result['52_week_low']
+                if response_data['data']:
+                    scheme_info['data'] = response_data['data']
+                else:
+                    scheme_info['data'] = "Underlying data not available"
+
+                final_result = render_response(scheme_info, as_json, as_Dataframe)
+                # Cache the result
+                self._cache.set(cache_key, final_result)
+                return final_result
+            except Exception as e:
+                # Return None on error, don't cache errors
+                return None
         else:
             return None
 
@@ -504,3 +566,37 @@ class Mftool:
         plt.xlabel("Date")
         plt.ylabel("NAV")
         plt.show()
+
+    def clear_cache(self):
+        """
+        Clear all cached data
+        :return: None
+        """
+        self._cache.clear()
+        self._scheme_codes_cache.clear()
+
+    def get_cache_stats(self):
+        """
+        Get cache statistics
+        :return: dict with cache stats
+        """
+        return {
+            'nav_cache': self._cache.get_stats(),
+            'scheme_codes_cache': self._scheme_codes_cache.get_stats()
+        }
+
+    def disable_cache(self):
+        """
+        Disable caching globally
+        :return: None
+        """
+        self._cache.disable()
+        self._scheme_codes_cache.disable()
+
+    def enable_cache(self):
+        """
+        Enable caching globally
+        :return: None
+        """
+        self._cache.enable()
+        self._scheme_codes_cache.enable()
