@@ -25,8 +25,11 @@ import yfinance as yf
 import datetime
 from deprecated import deprecated
 from matplotlib import pyplot as plt
-from .utils import Utilities, is_holiday, get_today, get_friday, render_response, get_52_week_friday, get_52_week_high_low
+from .utils import Utilities, is_holiday, get_today, get_friday, render_response, get_52_week_high_low
+from .cache import CacheManager
 import pandas as pd
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import List, Dict, Union
 
 
 class Mftool:
@@ -51,6 +54,13 @@ class Mftool:
         self._amc=self._const['amc']
         self._user_agent = self._const['user_agent']
         self._codes = self._const['codes']
+
+        # Initialize caching layer
+        # NAV data: 24 hours TTL (86400 seconds) - updates once daily
+        self._cache = CacheManager(default_ttl=86400)
+        # Scheme codes: 7 days TTL - rarely changes
+        self._scheme_codes_cache = CacheManager(default_ttl=604800)
+
         self._scheme_codes = self.get_scheme_codes().keys()
 
     def set_proxy(self, proxy):
@@ -69,6 +79,12 @@ class Mftool:
         cache handled internally
         :return: dict / json
         """
+        # Try to get from cache first
+        cache_key = f"scheme_codes:{as_json}"
+        cached_result = self._scheme_codes_cache.get(cache_key)
+        if cached_result is not None:
+            return cached_result
+
         scheme_info = {}
         url = self._get_quote_url
         response = self._session.get(url)
@@ -77,7 +93,11 @@ class Mftool:
             if ";" in scheme_data:
                 scheme = scheme_data.split(";")
                 scheme_info[scheme[0]] = scheme[3]
-        return render_response(scheme_info, as_json)
+
+        result = render_response(scheme_info, as_json)
+        # Cache the result
+        self._scheme_codes_cache.set(cache_key, result)
+        return result
 
     def get_available_schemes(self, amc_name):
         """
@@ -121,6 +141,12 @@ class Mftool:
         """
         code = str(code)
         if self.is_valid_code(code):
+            # Try to get from cache first
+            cache_key = f"quote:{code}:{as_json}"
+            cached_result = self._cache.get(cache_key)
+            if cached_result is not None:
+                return cached_result
+
             scheme_info = {}
             url = self._get_quote_url
             response = self._session.get(url)
@@ -133,9 +159,280 @@ class Mftool:
                     scheme_info['last_updated'] = scheme[5].replace("\r", "")
                     scheme_info['nav'] = scheme[4]
                     break
-            return render_response(scheme_info, as_json)
+
+            result = render_response(scheme_info, as_json)
+            # Cache the result
+            self._cache.set(cache_key, result)
+            return result
         else:
             return None
+
+    def get_bulk_quotes(self, scheme_codes: List[Union[str, int]], as_json=False,
+                       max_workers=10, show_progress=False) -> Dict[str, Union[dict, None]]:
+        """
+        Fetch quotes for multiple schemes concurrently for better performance.
+        Perfect for portfolio-level operations.
+
+        :param scheme_codes: List of scheme codes to fetch
+        :param as_json: Return data in JSON format (default: False)
+        :param max_workers: Maximum number of concurrent threads (default: 10)
+        :param show_progress: Print progress during fetching (default: False)
+        :return: Dictionary with scheme codes as keys and quote data as values
+        :raises: HTTPError, URLError
+
+        Example:
+            >>> mf = Mftool()
+            >>> codes = ['119597', '119062', '119061']
+            >>> quotes = mf.get_bulk_quotes(codes)
+            >>> print(quotes['119597']['nav'])
+        """
+        # Validate all codes first
+        valid_codes = []
+        invalid_codes = []
+
+        for code in scheme_codes:
+            code = str(code)
+            if self.is_valid_code(code):
+                valid_codes.append(code)
+            else:
+                invalid_codes.append(code)
+
+        if invalid_codes and show_progress:
+            print(f"Warning: {len(invalid_codes)} invalid scheme codes found: {invalid_codes[:5]}")
+
+        results = {}
+
+        # Check cache first for all codes
+        uncached_codes = []
+        for code in valid_codes:
+            cache_key = f"quote:{code}:{as_json}"
+            cached_result = self._cache.get(cache_key)
+            if cached_result is not None:
+                results[code] = cached_result
+            else:
+                uncached_codes.append(code)
+
+        if show_progress:
+            print(f"Fetching {len(uncached_codes)} quotes ({len(results)} from cache)...")
+
+        # Fetch uncached quotes concurrently
+        if uncached_codes:
+            def fetch_single_quote(code):
+                try:
+                    quote = self.get_scheme_quote(code, as_json=as_json)
+                    return code, quote
+                except Exception as e:
+                    if show_progress:
+                        print(f"Error fetching {code}: {str(e)[:50]}")
+                    return code, None
+
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                futures = {executor.submit(fetch_single_quote, code): code for code in uncached_codes}
+
+                completed = 0
+                for future in as_completed(futures):
+                    code, quote = future.result()
+                    results[code] = quote
+                    completed += 1
+
+                    if show_progress and completed % 10 == 0:
+                        print(f"Progress: {completed}/{len(uncached_codes)} completed")
+
+        if show_progress:
+            print(f"✓ Fetched {len(results)} quotes successfully")
+
+        return results
+
+    def search_schemes(self, search_term: str, limit: int = 10, as_json=False) -> Union[List[Dict[str, str]], str]:
+        """
+        Search for mutual fund schemes by name using fuzzy matching.
+        Makes it easy to find schemes without knowing exact codes.
+
+        :param search_term: Name or partial name to search for (case-insensitive)
+        :param limit: Maximum number of results to return (default: 10, use 0 for all)
+        :param as_json: Return data in JSON format (default: False)
+        :return: List of matching schemes with code and name
+
+        Example:
+            >>> mf = Mftool()
+            >>> results = mf.search_schemes("HDFC midcap")
+            >>> for scheme in results:
+            ...     print(f"{scheme['code']}: {scheme['name']}")
+
+            >>> # Get scheme code for first match
+            >>> matches = mf.search_schemes("Axis bluechip", limit=1)
+            >>> code = matches[0]['code'] if matches else None
+        """
+        search_term = search_term.lower().strip()
+
+        if not search_term:
+            return render_response([], as_json)
+
+        # Get all scheme codes and names
+        all_schemes = self.get_scheme_codes(as_json=False)
+
+        # Search for matches
+        matches = []
+        for code, name in all_schemes.items():
+            name_lower = name.lower()
+
+            # Check if search term is in the scheme name
+            if search_term in name_lower:
+                # Calculate relevance score (lower is better)
+                # Exact matches get highest priority
+                if name_lower == search_term:
+                    score = 0
+                # Matches at the start of the name get high priority
+                elif name_lower.startswith(search_term):
+                    score = 1
+                # Matches of whole words get medium priority
+                elif f" {search_term} " in f" {name_lower} ":
+                    score = 2
+                # Partial matches get lower priority
+                else:
+                    score = 3
+
+                matches.append({
+                    'code': code,
+                    'name': name,
+                    'score': score
+                })
+
+        # Sort by relevance (score) and then alphabetically by name
+        matches.sort(key=lambda x: (x['score'], x['name']))
+
+        # Remove score from results
+        results = [{'code': m['code'], 'name': m['name']} for m in matches]
+
+        # Apply limit if specified
+        if limit > 0:
+            results = results[:limit]
+
+        return render_response(results, as_json)
+
+    def search_schemes_by_amc(self, amc_name: str, search_term: str = "",
+                             limit: int = 10, as_json=False) -> Union[List[Dict[str, str]], str]:
+        """
+        Search for schemes within a specific AMC (fund house).
+
+        :param amc_name: Name of AMC (e.g., "HDFC", "ICICI", "Axis")
+        :param search_term: Optional search term to filter schemes within the AMC
+        :param limit: Maximum number of results to return (default: 10, use 0 for all)
+        :param as_json: Return data in JSON format (default: False)
+        :return: List of matching schemes with code and name
+
+        Example:
+            >>> mf = Mftool()
+            >>> # Get all HDFC schemes
+            >>> hdfc_schemes = mf.search_schemes_by_amc("HDFC")
+            >>>
+            >>> # Get HDFC midcap schemes
+            >>> hdfc_midcap = mf.search_schemes_by_amc("HDFC", "midcap")
+        """
+        # Get all schemes from the AMC
+        amc_schemes = self.get_available_schemes(amc_name)
+
+        # If no search term, return AMC schemes
+        if not search_term:
+            results = [{'code': code, 'name': name} for code, name in amc_schemes.items()]
+            if limit > 0:
+                results = results[:limit]
+            return render_response(results, as_json)
+
+        # Filter by search term
+        search_term = search_term.lower().strip()
+        matches = []
+
+        for code, name in amc_schemes.items():
+            name_lower = name.lower()
+            if search_term in name_lower:
+                # Calculate relevance score
+                if name_lower == search_term:
+                    score = 0
+                elif name_lower.startswith(search_term):
+                    score = 1
+                elif f" {search_term} " in f" {name_lower} ":
+                    score = 2
+                else:
+                    score = 3
+
+                matches.append({
+                    'code': code,
+                    'name': name,
+                    'score': score
+                })
+
+        # Sort by relevance
+        matches.sort(key=lambda x: (x['score'], x['name']))
+
+        # Remove score and apply limit
+        results = [{'code': m['code'], 'name': m['name']} for m in matches]
+        if limit > 0:
+            results = results[:limit]
+
+        return render_response(results, as_json)
+
+    def search_schemes_by_type(self, scheme_type: str, search_term: str = "",
+                               limit: int = 10, as_json=False) -> Union[List[Dict[str, str]], str]:
+        """
+        Search for schemes by type/category (Equity, Debt, Hybrid, etc.).
+
+        :param scheme_type: Type keywords like "equity", "debt", "hybrid", "elss", "index", "liquid"
+        :param search_term: Optional additional search term
+        :param limit: Maximum number of results (default: 10, use 0 for all)
+        :param as_json: Return data in JSON format (default: False)
+        :return: List of matching schemes with code and name
+
+        Example:
+            >>> mf = Mftool()
+            >>> # Find all ELSS schemes
+            >>> elss = mf.search_schemes_by_type("elss")
+            >>>
+            >>> # Find HDFC ELSS schemes
+            >>> hdfc_elss = mf.search_schemes_by_type("elss", "hdfc")
+        """
+        all_schemes = self.get_scheme_codes(as_json=False)
+        scheme_type = scheme_type.lower().strip()
+        search_term = search_term.lower().strip() if search_term else ""
+
+        matches = []
+        for code, name in all_schemes.items():
+            name_lower = name.lower()
+
+            # Check if scheme type is in the name
+            if scheme_type in name_lower:
+                # If search term provided, check if it's also in the name
+                if search_term and search_term not in name_lower:
+                    continue
+
+                # Calculate relevance score
+                score = 0
+                if search_term:
+                    # Both type and search term match
+                    if scheme_type in name_lower and search_term in name_lower:
+                        score = 1
+                else:
+                    # Only type matches
+                    if name_lower.startswith(scheme_type):
+                        score = 2
+                    else:
+                        score = 3
+
+                matches.append({
+                    'code': code,
+                    'name': name,
+                    'score': score
+                })
+
+        # Sort by relevance
+        matches.sort(key=lambda x: (x['score'], x['name']))
+
+        # Remove score and apply limit
+        results = [{'code': m['code'], 'name': m['name']} for m in matches]
+        if limit > 0:
+            results = results[:limit]
+
+        return render_response(results, as_json)
 
     def get_scheme_details(self, code, as_json=False):
         """
@@ -147,17 +444,34 @@ class Mftool:
         """
         code = str(code)
         if self.is_valid_code(code):
-            scheme_info = {}
-            url = self._get_scheme_url + code
-            response = self._session.get(url).json()
-            scheme_data = response['meta']
-            scheme_info['fund_house'] = scheme_data['fund_house']
-            scheme_info['scheme_type'] = scheme_data['scheme_type']
-            scheme_info['scheme_category'] = scheme_data['scheme_category']
-            scheme_info['scheme_code'] = scheme_data['scheme_code']
-            scheme_info['scheme_name'] = scheme_data['scheme_name']
-            scheme_info['scheme_start_date'] = response['data'][int(len(response['data']) -1)]
-            return render_response(scheme_info, as_json)
+            # Try to get from cache first
+            cache_key = f"details:{code}:{as_json}"
+            cached_result = self._cache.get(cache_key)
+            if cached_result is not None:
+                return cached_result
+
+            try:
+                scheme_info = {}
+                url = self._get_scheme_url + code
+                response = self._session.get(url)
+                response.raise_for_status()  # Raise exception for bad status codes
+                response_data = response.json()
+
+                scheme_data = response_data['meta']
+                scheme_info['fund_house'] = scheme_data['fund_house']
+                scheme_info['scheme_type'] = scheme_data['scheme_type']
+                scheme_info['scheme_category'] = scheme_data['scheme_category']
+                scheme_info['scheme_code'] = scheme_data['scheme_code']
+                scheme_info['scheme_name'] = scheme_data['scheme_name']
+                scheme_info['scheme_start_date'] = response_data['data'][int(len(response_data['data']) -1)]
+
+                result = render_response(scheme_info, as_json)
+                # Cache the result
+                self._cache.set(cache_key, result)
+                return result
+            except Exception as e:
+                # Return None on error, don't cache errors
+                return None
         else:
             return None
 
@@ -172,24 +486,41 @@ class Mftool:
         """
         code = str(code)
         if self.is_valid_code(code):
-            scheme_info = {}
-            url = self._get_scheme_url + code
-            response = self._session.get(url).json()
-            scheme_data = response['meta']
-            scheme_info['fund_house'] = scheme_data['fund_house']
-            scheme_info['scheme_type'] = scheme_data['scheme_type']
-            scheme_info['scheme_category'] = scheme_data['scheme_category']
-            scheme_info['scheme_code'] = scheme_data['scheme_code']
-            scheme_info['scheme_name'] = scheme_data['scheme_name']
-            scheme_info['scheme_start_date'] = response['data'][int(len(response['data']) - 1)]
-            result = get_52_week_high_low(response['data'])
-            scheme_info['52_week_high'] = result['52_week_high']
-            scheme_info['52_week_low'] = result['52_week_low']
-            if response['data']:
-                scheme_info['data'] = response['data']
-            else:
-                scheme_info['data'] = "Underlying data not available"
-            return render_response(scheme_info, as_json,as_Dataframe)
+            # Try to get from cache first
+            cache_key = f"historical:{code}:{as_json}:{as_Dataframe}"
+            cached_result = self._cache.get(cache_key)
+            if cached_result is not None:
+                return cached_result
+
+            try:
+                scheme_info = {}
+                url = self._get_scheme_url + code
+                response = self._session.get(url)
+                response.raise_for_status()  # Raise exception for bad status codes
+                response_data = response.json()
+
+                scheme_data = response_data['meta']
+                scheme_info['fund_house'] = scheme_data['fund_house']
+                scheme_info['scheme_type'] = scheme_data['scheme_type']
+                scheme_info['scheme_category'] = scheme_data['scheme_category']
+                scheme_info['scheme_code'] = scheme_data['scheme_code']
+                scheme_info['scheme_name'] = scheme_data['scheme_name']
+                scheme_info['scheme_start_date'] = response_data['data'][int(len(response_data['data']) - 1)]
+                result = get_52_week_high_low(response_data['data'])
+                scheme_info['52_week_high'] = result['52_week_high']
+                scheme_info['52_week_low'] = result['52_week_low']
+                if response_data['data']:
+                    scheme_info['data'] = response_data['data']
+                else:
+                    scheme_info['data'] = "Underlying data not available"
+
+                final_result = render_response(scheme_info, as_json, as_Dataframe)
+                # Cache the result
+                self._cache.set(cache_key, final_result)
+                return final_result
+            except Exception as e:
+                # Return None on error, don't cache errors
+                return None
         else:
             return None
 
@@ -504,3 +835,99 @@ class Mftool:
         plt.xlabel("Date")
         plt.ylabel("NAV")
         plt.show()
+
+    def clear_cache(self):
+        """
+        Clear all cached data
+        :return: None
+        """
+        self._cache.clear()
+        self._scheme_codes_cache.clear()
+
+    def get_cache_stats(self):
+        """
+        Get cache statistics
+        :return: dict with cache stats
+        """
+        return {
+            'nav_cache': self._cache.get_stats(),
+            'scheme_codes_cache': self._scheme_codes_cache.get_stats()
+        }
+
+    def disable_cache(self):
+        """
+        Disable caching globally
+        :return: None
+        """
+        self._cache.disable()
+        self._scheme_codes_cache.disable()
+
+    def enable_cache(self):
+        """
+        Enable caching globally
+        :return: None
+        """
+        self._cache.enable()
+        self._scheme_codes_cache.enable()
+
+    def calculate_portfolio_value(self, holdings: List[Dict[str, Union[str, float]]],
+                                  as_json=False) -> Dict[str, Union[float, dict]]:
+        """
+        Calculate total portfolio value for multiple holdings concurrently.
+
+        :param holdings: List of dicts with 'scheme_code' and 'units' keys
+        :param as_json: Return data in JSON format (default: False)
+        :return: Dictionary with portfolio summary
+
+        Example:
+            >>> holdings = [
+            ...     {'scheme_code': '119597', 'units': 100},
+            ...     {'scheme_code': '119062', 'units': 50}
+            ... ]
+            >>> portfolio = mf.calculate_portfolio_value(holdings)
+            >>> print(f"Total value: {portfolio['total_value']}")
+        """
+        scheme_codes = [str(h['scheme_code']) for h in holdings]
+
+        # Fetch all quotes concurrently
+        quotes = self.get_bulk_quotes(scheme_codes, as_json=False)
+
+        portfolio_data = []
+        total_value = 0.0
+
+        for holding in holdings:
+            code = str(holding['scheme_code'])
+            units = float(holding['units'])
+
+            quote = quotes.get(code)
+            if quote and 'nav' in quote:
+                nav = float(quote['nav'])
+                value = units * nav
+                total_value += value
+
+                portfolio_data.append({
+                    'scheme_code': code,
+                    'scheme_name': quote.get('scheme_name', 'N/A'),
+                    'units': units,
+                    'nav': nav,
+                    'current_value': round(value, 2),
+                    'last_updated': quote.get('last_updated', 'N/A')
+                })
+            else:
+                portfolio_data.append({
+                    'scheme_code': code,
+                    'scheme_name': 'Error fetching data',
+                    'units': units,
+                    'nav': 0,
+                    'current_value': 0,
+                    'last_updated': 'N/A'
+                })
+
+        result = {
+            'total_value': round(total_value, 2),
+            'total_schemes': len(holdings),
+            'holdings': portfolio_data,
+            'currency': 'INR'
+        }
+
+        return render_response(result, as_json)
