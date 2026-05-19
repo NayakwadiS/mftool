@@ -2,7 +2,7 @@
 
 Python library for getting Mutual Funds data in India
 
-![Python](https://img.shields.io/badge/python-v3.8+-blue.svg)
+![Python](https://img.shields.io/badge/python-v3.10+-blue.svg)
 [![Pypi](https://img.shields.io/badge/pypi-v3.3-green)](https://pypi.python.org/pypi/mftool)
 ![Dependencies](https://img.shields.io/badge/dependencies-up%20to%20date-brightgreen.svg)
 ![License](https://img.shields.io/pypi/l/selenium-wire.svg)
@@ -24,13 +24,14 @@ Features
 * Getting all historical NAVs for a schemes.
 * Getting list of all schemes with there Scheme codes.
 * Get daily scheme performance.
+* Support GenAI with mftool-mcp
 
 <!---*[**Documentation**](https://61836947349d9.site123.me/)*--->
 
 
 Related Projects -
 
-1. NSE Stock predictions *[NSE-Neuron](https://github.com/NayakwadiS/NSE-Neuron)*
+1. Forecasting Indian Stocks *[NSE-Neuron](https://github.com/NayakwadiS/NSE-Neuron)*
 2. Forecasting of Mutual Funds *[here](https://github.com/NayakwadiS/Forecasting_Mutual_Funds)*
 3. Predict Cryptocurrency in Indian Rupees *[here](https://github.com/NayakwadiS/Predict_Cryptocurrency_INR)*
 4. MCP server for GenAI apps *[mftool-mcp](https://github.com/NayakwadiS/mftool-mcp)*
