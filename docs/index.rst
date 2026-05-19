@@ -369,15 +369,6 @@ Get daily performance of Solution schemes
 >>> print(value)
 
 
-All AMC profiles
--------------------------------------------------
-
-Methode gives us Profile data of all AMCs
-
->>> amc_details = mf.get_all_amc_profiles(True)
->>> print(amc_details)
-
-
 Compare Funds
 -------------------------------------------------
 
@@ -492,7 +483,7 @@ Calculate total portfolio value with automatic concurrent fetching:
 
 Related Projects
 ===================
-1. NSE Stock predictions 
+1. Forecasting Indian Stocks 
 	https://github.com/NayakwadiS/NSE-Neuron
 
 2. Forecasting Mutual Funds -
