@@ -156,8 +156,10 @@ class Mftool:
                     scheme = scheme_data.split(";")
                     scheme_info['scheme_code'] = scheme[0]
                     scheme_info['scheme_name'] = scheme[3]
-                    scheme_info['last_updated'] = scheme[5].replace("\r", "")
-                    scheme_info['nav'] = scheme[4]
+                    scheme_info['plan'] = scheme[4]
+                    scheme_info['option'] = scheme[5]
+                    scheme_info['last_updated'] = scheme[7].replace("\r", "")
+                    scheme_info['nav'] = scheme[6]
                     break
 
             result = render_response(scheme_info, as_json)
