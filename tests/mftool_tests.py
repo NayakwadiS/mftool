@@ -6,7 +6,7 @@ import logging
 import json
 import six
 from mftool import Mftool
-from utils import is_holiday, get_friday, get_today
+from mftool.utils import is_holiday, get_friday, get_today
 
 log = logging.getLogger('mftool')
 logging.basicConfig(level=logging.DEBUG)
