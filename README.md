@@ -1,9 +1,9 @@
-<img src="/docs/mftool.png"  height="150">
+<img src="https://raw.githubusercontent.com/NayakwadiS/mftool/master/docs/mftool.png"  height="150">
 
 Python library for getting Mutual Funds data in India
 
 ![Python](https://img.shields.io/badge/python-v3.10+-blue.svg)
-[![Pypi](https://img.shields.io/badge/pypi-v3.3-green)](https://pypi.python.org/pypi/mftool)
+[![Pypi](https://img.shields.io/pypi/v/mftool.svg)](https://pypi.python.org/pypi/mftool)
 ![Dependencies](https://img.shields.io/badge/dependencies-up%20to%20date-brightgreen.svg)
 ![License](https://img.shields.io/pypi/l/selenium-wire.svg)
 [![Documentation](https://img.shields.io/badge/Documantation-latest-brightgreen)](https://mftool.readthedocs.io/en/latest/)
@@ -12,7 +12,7 @@ Python library for getting Mutual Funds data in India
 
 Introduction
 ============
-mftool is a library for getting publically available Mutual Funds data in India. It can be used in various types of projects which requires getting live quotes for a given mutual fund scheme or build large data sets for further data analytics.
+mftool is a library for getting publicly available Mutual Funds data in India. It can be used in various types of projects which requires getting live quotes for a given mutual fund scheme or build large data sets for further data analytics.
 
 Features
 =============
