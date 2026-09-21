@@ -92,7 +92,7 @@ class Mftool:
         for scheme_data in data:
             if ";" in scheme_data:
                 scheme = scheme_data.split(";")
-                scheme_info[scheme[0]] = scheme[3]
+                scheme_info[scheme[0]] = f"{scheme[3]} - {scheme[5]}" if len(scheme) > 5 else scheme[3]
 
         result = render_response(scheme_info, as_json)
         # Cache the result
