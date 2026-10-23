@@ -24,7 +24,7 @@ Features
 * Getting all historical NAVs for a schemes.
 * Getting list of all schemes with there Scheme codes.
 * Get daily scheme performance.
-* Support GenAI with mftool-mcp
+* Support GenAI with mftool-mcp and bahi-mcp.
 
 <!---*[**Documentation**](https://61836947349d9.site123.me/)*--->
 
