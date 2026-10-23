@@ -35,6 +35,7 @@ Related Projects -
 2. Forecasting of Mutual Funds *[here](https://github.com/NayakwadiS/Forecasting_Mutual_Funds)*
 3. Predict Cryptocurrency in Indian Rupees *[here](https://github.com/NayakwadiS/Predict_Cryptocurrency_INR)*
 4. MCP server for GenAI apps *[mftool-mcp](https://github.com/NayakwadiS/mftool-mcp)*
+5. MCP server for Indian stock market, calculators and mutual funds *[bahi-mcp](https://github.com/NayakwadiS/bahi-mcp)*
 
 <a href="https://www.buymeacoffee.com/nayakwadis" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="29" width="174">
 </a>
